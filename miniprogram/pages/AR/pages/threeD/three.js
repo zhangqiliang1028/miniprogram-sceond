@@ -10,6 +10,8 @@ Page({
   data: {
     screenHeight: wx.getSystemInfoSync().windowHeight,
     screenWidth: wx.getSystemInfoSync().windowWidth,
+    lastX: 0,
+    lastY: 0,
     touchS: [-1,-1],
     touchE: [-1,-1],
     info:"",
@@ -32,7 +34,6 @@ Page({
         this.render();
         console.log("屏幕宽高：["+this.data.screenWidth+","+this.data.screenHeight+"]");
       })
-
       this.countTime();     
   },
   init:function() {
@@ -63,7 +64,8 @@ Page({
     scene.add(object1);
     renderer = new THREE.WebGLRenderer({
       canvas:canvas,
-      antialias:true
+      antialias:true,
+      alpha:true
     });
     renderer.setPixelRatio(wx.getSystemInfoSync().pixelRatio);
     renderer.setSize(canvas.width, canvas.height);
@@ -97,6 +99,10 @@ Page({
     this.raycaster(this.data.mytouch);
     if(tapedObjs.length>0){
       tapedObjs[0].object.isChoiced = true;
+      this.setData({
+        lastX:e.touches[0].pageX,
+        lastY:e.touches[0].pageY,
+      })
     }
     console.log("触摸开始["+this.data.touchS[0]+","+this.data.touchS[1]+"]");
     this.setData({
@@ -106,20 +112,29 @@ Page({
   },
   touchMove(e) {
     this.setData({
-      mytouch:[e.touches[0].pageX,e.touches[0].pageY]
+      mytouch:[e.touches[0].pageX,e.touches[0].pageY],
     })
-    let aa = 8.5;
-    if(tapedObjs.length>0&&tapedObjs[0].object.isChoiced == true){
-      tapedObjs[0].object.position.x = -(this.data.screenWidth/2.0/aa-this.data.mytouch[0]/aa+4);
-      tapedObjs[0].object.position.y =  (this.data.screenHeight/2.0/aa-this.data.mytouch[1]/aa);
-    }
+    let currentX = e.touches[0].pageX
+    let currentY = e.touches[0].pageY
+    let tx = currentX - this.data.lastX
+    let ty = currentY - this.data.lastY
     
+    //屏幕坐标转canvas坐标
+    let x = this.data.mytouch[0]*1.0/this.data.screenWidth * 2 - 1;
+    let y = -(this.data.mytouch[1]*1.0/this.data.screenHeight) * 2 + 1;
+    //console.log('canvas坐标：',x,y);
+    if(tapedObjs.length>0&&tapedObjs[0].object.isChoiced == true){
+      //canvas坐标转世界坐标,0.5随便填
+      tapedObjs[0].object.position.x +=tx*0.2;
+      tapedObjs[0].object.position.y -=ty*0.2;
+    }
     this.data.touchE[0] = e.touches[0].pageX;
     this.data.touchE[1] = e.touches[0].pageY;
     this.setData({
-      info:"正在移动"
+      info:"正在移动",
+      lastX:e.touches[0].pageX,
+      lastY:e.touches[0].pageY,
     })
-    startinfotime = Date.parse(new Date());
   },
   touchEnd(e) {
     if(tapedObjs.length>0){
@@ -137,7 +152,13 @@ Page({
     this.setData({
       info:"触屏结束"
     })
-    startinfotime = Date.parse(new Date());
+    //startinfotime = Date.parse(new Date());
+    setTimeout(this.cleanInfo,infoshowtime);
+  },
+  cleanInfo:function(){
+    this.setData({
+      info:""
+    })
   },
   touchTap(e){
     this.setData({
@@ -162,7 +183,7 @@ Page({
       this.setData({
         objname:tapedObjs[0].object.name,
       })
-      util.responseClichObj(this.data.objname,this.data.mytouch);
+      util.responseClichObj(tapedObjs[0],THREE,scene);
     }else{
       this.setData({
         objname:"",
@@ -241,7 +262,10 @@ Page({
     gemo.computeVertexNormals();
     //定义材质
     mesh=new THREE.Mesh(gemo,new THREE.MeshLambertMaterial({color: 0xffffff}))
-    mesh.position.z = -40;
+    mesh.scale.x*=3;
+    mesh.scale.y*=3;
+    mesh.scale.z*=3;
+    mesh.position.z = -100;
     mesh.position.y = 20;
     mesh.rotation.x = 200;
     mesh.name = "箭头"

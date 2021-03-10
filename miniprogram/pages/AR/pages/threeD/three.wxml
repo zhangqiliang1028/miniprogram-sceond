@@ -15,7 +15,9 @@
     flash="auto" 
     frame-size="medium"
     style="position:fixed;top:0;width:100%;height:100%;z-index:0;">
-    <canvas 
+
+  </camera>
+  <canvas 
   class="webgl"
   type="webgl"
   id="webgl"
@@ -34,5 +36,4 @@
         <text>计时：{{countdown}}</text>
     </view>
  </canvas>
-  </camera>
 </view>
