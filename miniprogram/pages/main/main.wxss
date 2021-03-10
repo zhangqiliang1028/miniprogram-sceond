@@ -1,0 +1,86 @@
+/* pages/AR/pages/main/main.wxss */
+.basicview{
+  background: rgb(101, 241, 164);
+  width: 100%;
+  height: 1000px;
+  
+  color: rgb(93, 19, 231);
+  text-align: center;
+  line-height: 50px;
+}
+.ARview{
+  background: rgb(236, 118, 217);
+  width: 30%;
+  height: 35px;
+  color: rgb(93, 19, 231);
+  text-align: center;
+  margin-left:35% ;
+  line-height: 37px;
+  border-radius: 10px;
+}
+.media{
+  background: rgb(236, 118, 217);
+  width: 30%;
+  height: 35px;
+  color: rgb(93, 19, 231);
+  text-align: center;
+  margin-left:35% ;
+  margin-top: 2%;
+  line-height: 37px;
+  border-radius: 10px;
+}
+.image_recognition{
+  background: rgb(236, 118, 217);
+  width: 30%;
+  height: 35px;
+  color: rgb(93, 19, 231);
+  text-align: center;
+  margin-left:35% ;
+  margin-top: 2%;
+  line-height: 37px;
+  border-radius: 10px;
+}
+.cartoon{
+  background: rgb(236, 118, 217);
+  width: 30%;
+  height: 35px;
+  color: rgb(93, 19, 231);
+  text-align: center;
+  margin-left:35% ;
+  margin-top: 2%;
+  line-height: 37px;
+  border-radius: 10px;
+}
+.audio{
+  background: rgb(236, 118, 217);
+  width: 30%;
+  height: 35px;
+  color: rgb(93, 19, 231);
+  text-align: center;
+  margin-left:35% ;
+  margin-top: 2%;
+  line-height: 37px;
+  border-radius: 10px;
+}
+.local{
+  background: rgb(236, 118, 217);
+  width: 30%;
+  height: 35px;
+  color: rgb(93, 19, 231);
+  text-align: center;
+  margin-left:35% ;
+  margin-top: 2%;
+  line-height: 37px;
+  border-radius: 10px;
+}
+.loadModel{
+  background: rgb(236, 118, 217);
+  width: 30%;
+  height: 35px;
+  color: rgb(93, 19, 231);
+  text-align: center;
+  margin-left:35% ;
+  margin-top: 2%;
+  line-height: 37px;
+  border-radius: 10px;
+}

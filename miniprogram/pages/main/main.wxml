@@ -1,0 +1,27 @@
+<!--pages/AR/pages/main/main.wxml-->
+<view 
+  class="basicview"
+  >
+  菜单
+  <view class="ARview" bindtap="threeDClick">
+    进入AR
+  </view>
+  <!--
+<view class="media" bindtap="mediaDClick">
+    进入媒体
+  </view>
+  <view class="image_recognition" bindtap="image_recognitionClick">
+    图像识别
+  </view>
+  <view class="cartoon" bindtap="cartoonClick">
+    3D动画效果
+  </view>
+  <view class="local" bindtap="localClick">
+    位置获取
+  </view>
+  <view class="loadModel" bindtap="loadModelClick">
+    加载外部模型
+  </view>
+  -->
+  
+</view>
