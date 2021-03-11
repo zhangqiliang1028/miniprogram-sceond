@@ -1,36 +1,66 @@
 
-import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
-var THREE;
-function responseClichObj(obj,THREE,scene) {
+//import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
+function responseClickObj(obj,THREE,scene) {
+  var object,geometry,textureLoader;
+  if(obj.name == "长方体"){
+    rectangle();
+    console.log("物体：",obj.children.length);
+    obj.traverse(function(res) {
+        console.log(res.name);
+      })
+  }else if(obj.name == "箭头"){
+    
+  }else if(obj.name == "subrectangle"){
+    wx.navigateTo({
+      url: '../rectangle/rectangle',
+      events: {
+        // 为指定事件添加一个监听器，获取被打开页面传送到当前页面的数据
+        acceptDataFromOpenedPage: function(data) {
+          console.log(data)
+        },
+        someEvent: function(data) {
+          console.log(data)
+        }
+      },
+      success: function(res) {
+        // 通过eventChannel向被打开页面传送数据
+        res.eventChannel.emit('acceptDataFromOpenerPage', { data: 'test' })
+      }
+    })
+  }
   
-  var pos = obj.object.position;
-  console.log("调用外部函数responseClichObj",obj);
-  var geometry = new THREE.PlaneBufferGeometry(50, 30);
-  var material = new THREE.MeshPhongMaterial({
-    color:0xff9900, //颜色
-    opacity:0.4,  //透明度
-    transparent:true,  //是否开启透明度
-    wireframe:false, //将几何图形渲染为线框。 默认值为false
-    shininess:12, //高光
-    side:THREE.DoubleSide, //双面显示材质
-  }); //材质对象Material
-  var object = new THREE.Mesh(geometry, material); // 创建网格模型对象
-
-  object.normal = new THREE.Vector3(0, 1, 0); //方向
-  object.position.set(0,0,0); //位置旋转
-  object.translateY(object.scale.y/2); //平移
-  object.translateX(object.scale.x/2); //平移
-  object.translateZ(obj.object.scale.z/2+20); //平移
-  //object.scale.set(1, 1, 1 ) //放缩
-  object.rotateX(-obj.object.rotation.x);//绕x轴旋转π/4
-  object.rotateY(-obj.object.rotation.y);//绕x轴旋转π/4
-  object.rotateZ(-obj.object.rotation.z);//绕x轴旋转π/4
-  console.log(object.rotation);
-  obj.object.add(object);
-  console.log("物体：",object);
-  
-  
-
+  function rectangle(){
+    console.log("调用外部函数responseClickObj");
+    var tapWidth = obj.scale.x*5,
+    tapHeight = obj.scale.y*3;
+      
+    geometry = new THREE.PlaneBufferGeometry(tapWidth, tapHeight);
+    textureLoader = new THREE.TextureLoader();
+    var texture = textureLoader.load('../util/1.jpg');
+    var material = new THREE.MeshPhongMaterial({
+      //color:0xff9900, //颜色
+      opacity:0.8,  //透明度
+      transparent:false,  //是否开启透明度
+      wireframe:false, //将几何图形渲染为线框。 默认值为false
+      shininess:12, //高光
+      side:THREE.DoubleSide, //双面显示材质
+      map: texture,//设置颜色贴图属性值
+    }); //材质对象Material
+    texture.minFilter = THREE.LinearFilter;
+    object = new THREE.Mesh(geometry, material); // 创建网格模型对象
+    object.normal = new THREE.Vector3(0, 1, 0); //方向
+    //object.position.set(0,0,0); //位置旋转
+    object.translateY(4); //平移
+    //object.translateX(object.scale.x*10); //平移
+    object.translateZ(7); //平移
+    //object.scale.set(1, 1, 1 ) //放缩
+    object.rotateX(-obj.rotation.x);//绕x轴旋转π/4
+    object.rotateY(-obj.rotation.y);//绕x轴旋转π/4
+    object.rotateZ(-obj.rotation.z);//绕x轴旋转π/4
+    object.name = "subrectangle";
+    obj.add(object);
+    
+  }
   function drawPerson(){
       // 头部网格模型和组
     var headMesh = sphereMesh(10, 0, 0, 0);
@@ -94,6 +124,6 @@ function changePage(url,res){
     
 }
 module.exports = {
-  responseClichObj: responseClichObj,
+  responseClickObj: responseClickObj,
   changePage:changePage,
 }

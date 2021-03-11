@@ -1,0 +1,11 @@
+<!--pages/AR/pages/rectangle/rectangle.wxml-->
+<text class="content">这是长方体的详细说明页面</text>
+<view class='a' wx:for="{{ne}}"><!--wx:for是微信数据绑定的一种方式，该数组有多少数据就显示多少个view-->
+    <!--index为每个数据对应的下标-->
+    <view >序号：{{index+1}}</view>
+    <!--item就相当于数组名+下标的结合体，适用于调用数组所有数据-->
+    <view>姓名：{{item.name}}</view>
+    <view >年龄：{{item.age}}</view>
+    <view >学号：{{item.number}}</view>
+</view>
+<button class="return" catchtap="returnClick">返回</button>

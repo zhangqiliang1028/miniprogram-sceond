@@ -20,7 +20,8 @@
       "root": "pages/AR",
       "name": "AR",
       "pages": [
-        "pages/threeD/three"
+        "pages/threeD/three",
+        "pages/rectangle/rectangle"
       ]
     }
   ],

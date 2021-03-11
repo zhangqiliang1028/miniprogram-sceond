@@ -1,0 +1,11 @@
+/* pages/AR/pages/rectangle/rectangle.wxss */
+.return{
+  background: rgb(20, 238, 56);
+  color: rgb(255, 0, 221);
+  width: 100%;
+  margin-top: 200px;
+  border-radius: 20px;
+}
+.content{
+  text-align:center
+}

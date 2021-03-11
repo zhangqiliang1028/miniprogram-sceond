@@ -40,6 +40,7 @@ Page({
     
     camera = new THREE.PerspectiveCamera(70, canvas.width / canvas.height, 1, 10000);
     scene = new THREE.Scene();
+    scene.name = "场景";
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2(0,0);
     //scene.background = new THREE.Color(0x0ffff0);
@@ -47,17 +48,17 @@ Page({
     var gl = canvas.getContext('webgl', { alpha: true }); 
     light.position.set(1, 1, 1).normalize();
     scene.add(light);
-    let geometry = new THREE.BoxBufferGeometry(10, 20, 10);
+    let geometry = new THREE.BoxBufferGeometry(5, 10, 5);
     let geometry1 = new THREE.DodecahedronGeometry(5);
     object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
-    object.position.z =  -200;
-    object.scale.y = 1.5;
+    object.position.z =  -100;
+    object.scale.y = 1;
     object.name = "长方体"
+    object.scale.set(2,2,2);
     scene.add(object);
     object1 = new THREE.Mesh(geometry1, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
     object1.position.z =  -100;
     object1.position.y =  20;
-    console.log(object1.scale);
     object1.name = "正十二面体"
     this.drawArrows();
     scene.add(mesh);
@@ -78,7 +79,7 @@ Page({
     object1.rotation.y += 0.02;
     object1.rotation.z += 0.03;
     if(Math.abs(object1scale)>0.0001){
-      if(object1.scale.x>3||object1.scale.x<0.5){
+      if(object1.scale.x>1.5||object1.scale.x<0.7){
         object1scale = -1*object1scale;
       }
       object1.scale.x+=object1scale;
@@ -171,19 +172,23 @@ Page({
     console.log("箭头坐标：["+mesh.position.x+","+mesh.position.y+"]");
     //drawArrows();
     if(tapedObjs.length>0){
-      if(tapedObjs[0].object.name == "正十二面体"){
-        //console.log(tapedObjs[0].object.scale);
-        if(object1scale<0.0001){
-          object1scale = 0.03;
-        }else{
-          object1scale = 0;
-        }
-        //console.log(object1scale);
-      }
       this.setData({
         objname:tapedObjs[0].object.name,
       })
-      util.responseClichObj(tapedObjs[0],THREE,scene);
+      if(tapedObjs[0].object.name == "正十二面体"){
+        //console.log(tapedObjs[0].object.scale);
+        if(object1scale<0.0001){
+          object1scale = 0.01;
+        }else{
+          object1scale = 0;
+        }
+      }
+      if(tapedObjs[0].object.children.length == 0){
+        util.responseClickObj(tapedObjs[0].object,THREE,scene);
+      }else{
+        tapedObjs[0].object.remove(tapedObjs[0].object.children[0]);
+      }
+        
     }else{
       this.setData({
         objname:"",
@@ -201,12 +206,13 @@ Page({
     mouse.y = -(e[1] / this.data.screenHeight) * 2 + 1;
     console.log(mouse.x+" "+mouse.y);
     raycaster.setFromCamera(mouse, camera);
-    let intersects = raycaster.intersectObjects(scene.children);
+    let intersects = raycaster.intersectObjects(scene.children,true); //object检测与射线相交的物体,recursive为true检查后代对象，默认值为false
     tapedObjs.splice(0);
     if(intersects.length>0){
-      let obj = intersects[0].object;
-      tapedObjs.push(intersects[0]);
-      //obj.position.y+=20;
+      for(let i=0;i<intersects.length;i++){
+        tapedObjs.push(intersects[i]);
+      }
+      
     }
     console.log("点击到的物体数量："+tapedObjs.length);
   },
@@ -262,9 +268,7 @@ Page({
     gemo.computeVertexNormals();
     //定义材质
     mesh=new THREE.Mesh(gemo,new THREE.MeshLambertMaterial({color: 0xffffff}))
-    mesh.scale.x*=3;
-    mesh.scale.y*=3;
-    mesh.scale.z*=3;
+    //mesh.scale.set(3,3,3);
     mesh.position.z = -100;
     mesh.position.y = 20;
     mesh.rotation.x = 200;
