@@ -1,13 +1,15 @@
 
 //import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
-function responseClickObj(obj,THREE,scene) {
+function responseClickObj(obj,pos,THREE,ctx) {
   var tapWidth,tapHeight;
   var object,geometry,textureLoader;
+
   if(obj.name == "长方体"){
-    rectangle();
+    //rectangle();
     //showToast();
-    showModal();
+    //showModal();
     //showActionSheet();
+    ctxDraw();
     console.log("物体：",obj.children.length);
     obj.traverse(function(res) {  //查找所有子物体
         console.log(res.name);
@@ -33,6 +35,34 @@ function responseClickObj(obj,THREE,scene) {
     })
   }
   
+  function ctxDraw(){ //在canvas2d上绘制内容,位置是pos
+    var x = pos[0],y = pos[1];
+    ctx.setFillStyle('lightgreen') //颜色
+    ctx.moveTo(x,y); //无痕迹线
+    ctx.lineTo(x +30,y+20)  //有痕迹线
+    ctx.lineTo(x+100,y+20)
+    ctx.lineTo(x+100,y+60)
+    ctx.lineTo(x +30,y+60)
+    ctx.lineTo(x,y)
+    const grd = ctx.createLinearGradient(x +30,y+20,x+100,y+20) //线性渐变
+    grd.addColorStop(0, 'red')
+    //grd.addColorStop(0.5, 'green')
+    grd.addColorStop(1, 'lightblue')
+    // Fill with gradient
+    ctx.setFillStyle(grd)
+    ctx.fillRect(x +30,y+20,70,40)
+    ctx.setFontSize(10)  //字体大小
+    ctx.setFillStyle('blue') //填充模式
+    ctx.fillText("Hello,World!",x+35,y+40) //文本
+    ctx.setStrokeStyle('#ffffff')
+    ctx.stroke() //显示痕迹
+    ctx.draw()  //绘制内容，添加参数true则保留之前绘制的内容
+    function tt(){
+      ctx.draw()
+    }
+    setTimeout(tt,5000)
+  }
+
   function rectangle(){  //点击长方体后显示图片提示
     console.log("调用外部函数responseClickObj");
     tapWidth = obj.scale.x*5;

@@ -15,7 +15,6 @@
     flash="auto" 
     frame-size="medium"
     style="position:fixed;top:0;width:100%;height:100%;z-index:0;">
-
   </camera>
   <canvas 
   class="webgl"
@@ -23,6 +22,12 @@
   id="webgl"
   style="height:100%;width:100%;z-index:100%"
   >
+  <canvas 
+  class="myCanvas2d"
+  canvas-id="mycanvas"
+  style="height:100%;width:100%"
+  >
+ </canvas>
   <view class="paizhao" catchtap ="paizhaoClick">
     拍照
   </view>
@@ -36,4 +41,5 @@
         <text>计时：{{countdown}}</text>
     </view>
  </canvas>
+
 </view>

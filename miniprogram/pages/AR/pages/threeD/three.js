@@ -1,7 +1,7 @@
 // pages/AR/pages/threeD/three.js
 import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
 var util = require('../util/util.js')
-var camera,canvas,scene,THREE,light,raycaster,renderer;
+var camera,canvas,canvas2d,scene,THREE,light,raycaster,renderer,ctx;
 var mouse,object,object1,object1scale = 0,mesh;
 var tapedObjs = [];
 var startinfotime,endinfotime,infoshowtime = 2000;
@@ -34,6 +34,8 @@ Page({
         this.render();
         console.log("屏幕宽高：["+this.data.screenWidth+","+this.data.screenHeight+"]");
       })
+      ctx = wx.createCanvasContext('mycanvas')
+      console.log(ctx);
       this.countTime();     
   },
   init:function() {
@@ -45,7 +47,7 @@ Page({
     mouse = new THREE.Vector2(0,0);
     //scene.background = new THREE.Color(0x0ffff0);
     var light = new THREE.DirectionalLight(0xffffff, 1);
-    var gl = canvas.getContext('webgl', { alpha: true }); 
+    //var gl = canvas.getContext('webgl', { alpha: true }); 
     light.position.set(1, 1, 1).normalize();
     scene.add(light);
     let geometry = new THREE.BoxBufferGeometry(5, 10, 5);
@@ -184,7 +186,7 @@ Page({
         }
       }
       if(tapedObjs[0].object.children.length == 0){
-        util.responseClickObj(tapedObjs[0].object,THREE,scene);
+        util.responseClickObj(tapedObjs[0].object,this.data.mytouch,THREE,ctx);//传入点击的物体，屏幕位置，THREE，2d画布
       }else{
         tapedObjs[0].object.remove(tapedObjs[0].object.children[0]);
       }
