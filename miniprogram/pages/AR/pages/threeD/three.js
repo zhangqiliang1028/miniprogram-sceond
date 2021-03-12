@@ -198,6 +198,7 @@ Page({
       info:"点击了一下"+this.data.objname
     })
   },
+
   touchCancel(e) {
     console.log("触摸取消");
   },

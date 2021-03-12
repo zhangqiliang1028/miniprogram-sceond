@@ -3,9 +3,40 @@
   background: rgb(20, 238, 56);
   color: rgb(255, 0, 221);
   width: 100%;
-  margin-top: 200px;
+  margin-top: 50px;
   border-radius: 20px;
 }
 .content{
   text-align:center
+}
+.movable-area{
+  width: 100%;
+  background-color: green;
+  
+}
+.image1{
+  position: relative;
+  margin-top: 25%;
+  margin-left: 0%;
+  width: 40px;
+  height: 40px;
+  animation: imgRotate 12s linear infinite;
+  animation-delay:2s;
+  animation-direction:alternate;
+  text-align: center;
+}
+
+.container{
+  background: linear-gradient(90deg, #EE7752, #E73C7E, #23A6D5, #23D5AB);
+  width: 80px;
+  height: 80px;
+}
+@keyframes imgRotate{
+  0%{
+      transform: rotateZ(0deg);/*从0度开始*/
+  }
+  100%{
+      transform: rotateZ(360deg);/*360度结束*/
+  }
+  
 }

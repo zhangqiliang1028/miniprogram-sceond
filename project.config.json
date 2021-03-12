@@ -10,7 +10,7 @@
     "minified": true,
     "newFeature": true,
     "coverView": true,
-    "nodeModules": false,
+    "nodeModules": true,
     "autoAudits": false,
     "showShadowRootInWxmlPanel": true,
     "scopeDataCheck": false,
@@ -39,7 +39,7 @@
   },
   "appid": "wx108345217f87e16e",
   "projectname": "miniprogram-2",
-  "libVersion": "2.14.1",
+  "libVersion": "2.16.0",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate",
   "condition": {
     "search": {

@@ -1,16 +1,20 @@
 
 //import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
 function responseClickObj(obj,THREE,scene) {
+  var tapWidth,tapHeight;
   var object,geometry,textureLoader;
   if(obj.name == "长方体"){
     rectangle();
+    //showToast();
+    showModal();
+    //showActionSheet();
     console.log("物体：",obj.children.length);
-    obj.traverse(function(res) {
+    obj.traverse(function(res) {  //查找所有子物体
         console.log(res.name);
       })
   }else if(obj.name == "箭头"){
     
-  }else if(obj.name == "subrectangle"){
+  }else if(obj.name == "subrectangle"){  //界面跳转
     wx.navigateTo({
       url: '../rectangle/rectangle',
       events: {
@@ -29,11 +33,10 @@ function responseClickObj(obj,THREE,scene) {
     })
   }
   
-  function rectangle(){
+  function rectangle(){  //点击长方体后显示图片提示
     console.log("调用外部函数responseClickObj");
-    var tapWidth = obj.scale.x*5,
+    tapWidth = obj.scale.x*5;
     tapHeight = obj.scale.y*3;
-      
     geometry = new THREE.PlaneBufferGeometry(tapWidth, tapHeight);
     textureLoader = new THREE.TextureLoader();
     var texture = textureLoader.load('../util/1.jpg');
@@ -45,6 +48,7 @@ function responseClickObj(obj,THREE,scene) {
       shininess:12, //高光
       side:THREE.DoubleSide, //双面显示材质
       map: texture,//设置颜色贴图属性值
+      //map:new THREE.CanvasTexture(getTextCanvas('Leo Test Label'))
     }); //材质对象Material
     texture.minFilter = THREE.LinearFilter;
     object = new THREE.Mesh(geometry, material); // 创建网格模型对象
@@ -61,7 +65,83 @@ function responseClickObj(obj,THREE,scene) {
     obj.add(object);
     
   }
-  function drawPerson(){
+  
+  function showToast(){  //一个对号提示
+    wx.showToast({
+      title: '成功',
+      icon: 'success',
+      duration: 2000,
+      mask:true,
+      
+    })
+  }
+  
+  function showModal(){  //显示模态对话框
+    wx.showModal({
+      title: '提示',
+      content: '是否查看场馆详情？',
+      //editable:true,
+      placeholderText:"请输入场馆名称",
+      cancelText:"否",
+      confirmText:"是",
+      //confirmColor:0x00ff00,
+      success (res) {
+        if (res.confirm) {
+          console.log('用户点击确定')
+          wx.navigateTo({
+            url: '../rectangle/rectangle',
+            events: {
+              // 为指定事件添加一个监听器，获取被打开页面传送到当前页面的数据
+              acceptDataFromOpenedPage: function(data) {
+                console.log(data)
+              },
+              someEvent: function(data) {
+                console.log(data)
+              }
+            },
+            success: function(res) {
+              // 通过eventChannel向被打开页面传送数据
+              res.eventChannel.emit('acceptDataFromOpenerPage', { data: 'test' })
+            }
+          })
+        } else if (res.cancel) {
+          console.log('用户点击取消')
+        }
+      }
+    })    
+  }
+  
+  function showActionSheet(){
+    wx.showActionSheet({
+      itemList: ['A', 'B', 'C'],
+      success (res) {
+        console.log(res.tapIndex)
+        if(res.tapIndex == 0){
+          console.log("跳转到详情页面");
+        }
+      },
+      fail (res) {
+        console.log(res.errMsg)
+      }
+    })    
+  }
+  function getTextTexture(text){   //渲染文字
+
+    var width=tapWidth, height=tapHeight; 
+    canvas.width = width;
+    canvas.height = height;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#C3C3C3';
+    ctx.fillRect(0, 0, width, height);
+    ctx.font = 50+'px " bold';
+    ctx.fillStyle = '#2891FF';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, width/2,height/2); 
+    return canvas;
+    }
+  
+  function drawPerson(){    //画人
       // 头部网格模型和组
     var headMesh = sphereMesh(10, 0, 0, 0);
     headMesh.name = "脑壳"
@@ -95,8 +175,8 @@ function responseClickObj(obj,THREE,scene) {
     personGroup.translateY(50)
     obj.object.add(personGroup);
   }
-  // 圆柱体网格模型创建函数
-  function sphereMesh(R, x, y, z) {
+  
+  function sphereMesh(R, x, y, z) {    // 圆柱体网格模型创建函数
     var geometry = new THREE.SphereGeometry(R, 25, 25); //球体几何体
     var material = new THREE.MeshPhongMaterial({
       color: 0x0000ff
@@ -106,7 +186,7 @@ function responseClickObj(obj,THREE,scene) {
     return mesh;
   }
   
-function cylinderMesh(R, h, x, y, z) {
+function cylinderMesh(R, h, x, y, z) {    // 球体网格模型创建函数
   var geometry = new THREE.CylinderGeometry(R, R, h, 25, 25); //球体几何体
   var material = new THREE.MeshPhongMaterial({
     color: 0x0000ff
@@ -116,14 +196,8 @@ function cylinderMesh(R, h, x, y, z) {
   return mesh;
 }
 }
-// 球体网格模型创建函数
 
-
-function changePage(url,res){
-    console.log("调用外部函数实现页面跳转")
-    
-}
 module.exports = {
   responseClickObj: responseClickObj,
-  changePage:changePage,
+
 }
