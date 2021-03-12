@@ -21,7 +21,8 @@
       "name": "AR",
       "pages": [
         "pages/threeD/three",
-        "pages/rectangle/rectangle"
+        "pages/rectangle/rectangle",
+        "pages/map/map"
       ]
     }
   ],

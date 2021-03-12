@@ -6,6 +6,9 @@
   <view class="ARview" bindtap="threeDClick">
     进入AR
   </view>
+  <view class="map" bindtap="mapClick">
+    进入地图
+  </view>
   <!--
 <view class="media" bindtap="mediaDClick">
     进入媒体

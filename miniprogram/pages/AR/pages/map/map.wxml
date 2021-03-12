@@ -1,0 +1,14 @@
+<!--pages/AR/pages/map/map.wxml-->
+<map id="map" 
+      longitude="{{longitude}}"
+      latitude="{{latitude}}"
+      scale="14"
+      controls="{{controls}}"
+      markers="{{markers}}"  
+      polyline="{{polyline}}" 
+      circles="{{circles}}" 
+      show-location 
+      style="width: 100%; height:{{screenHeight}}px;">
+
+</map>
+
