@@ -2,12 +2,22 @@
 <map id="map" 
       longitude="{{longitude}}"
       latitude="{{latitude}}"
-      scale="14"
+      scale="{{scale}}"
       controls="{{controls}}"
       markers="{{markers}}"  
       polyline="{{polyline}}" 
       circles="{{circles}}" 
-      show-location 
+      show-location = "{{true}}"
+      skew = "30"
+      rotate = "360"
+      show-scale = "true"
+      show-compass = "true"
+      enable-traffic = "true"
+      enable-poi = "true"
+      enable-building = "true"
+      bindmarkertap = "markertap"
+      bindcontroltap = "controltap"
+      bindregionchange = "regionchange"
       style="width: 100%; height:{{screenHeight}}px;">
 
 </map>
