@@ -84,7 +84,18 @@
   line-height: 37px;
   border-radius: 10px;
 }
-.map{
+.TXmap{
+  background: rgb(236, 118, 217);
+  width: 30%;
+  height: 35px;
+  color: rgb(93, 19, 231);
+  text-align: center;
+  margin-left:35% ;
+  margin-top: 3%;
+  line-height: 37px;
+  border-radius: 10px;
+}
+.minMap{
   background: rgb(236, 118, 217);
   width: 30%;
   height: 35px;

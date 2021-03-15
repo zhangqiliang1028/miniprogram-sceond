@@ -4,21 +4,23 @@
       latitude="{{latitude}}"
       scale="{{scale}}"
       controls="{{controls}}"
-      markers="{{markers}}"  
+      markers="{{markers}}"   
       polyline="{{polyline}}" 
       circles="{{circles}}" 
-      show-location = "{{true}}"
-      skew = "30"
-      rotate = "360"
-      show-scale = "true"
-      show-compass = "true"
-      enable-traffic = "true"
+      setting = "{{setting}}"
       enable-poi = "true"
       enable-building = "true"
       bindmarkertap = "markertap"
       bindcontroltap = "controltap"
       bindregionchange = "regionchange"
+      bindanchorpointtap = "anchorpointtap"
       style="width: 100%; height:{{screenHeight}}px;">
+      <cover-view>
+        <cover-view slot="callout">
+          <cover-view marker-id="1"></cover-view>
+          <cover-view marker-id="2"></cover-view>
+        </cover-view>
+      </cover-view>
 
 </map>
 

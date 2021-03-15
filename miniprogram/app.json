@@ -22,7 +22,8 @@
       "pages": [
         "pages/threeD/three",
         "pages/rectangle/rectangle",
-        "pages/map/map"
+        "pages/map/map",
+        "pages/minMap/minMap"
       ]
     }
   ],

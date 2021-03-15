@@ -1,4 +1,4 @@
-// pages/AR/pages/main/main.js
+// pages/AR/pages/minMap/minMap.js
 Page({
 
   /**
@@ -62,20 +62,5 @@ Page({
    */
   onShareAppMessage: function () {
 
-  },
-  threeDClick:function(){
-    wx.navigateTo({
-      url: '../AR/pages/threeD/three'
-})
-  },
-  mapClick:function(){
-    wx.navigateTo({
-      url: '../AR/pages/map/map'
-})
-  },
-  minMapClick:function(){
-    wx.navigateTo({
-      url: '../AR/pages/minMap/minMap'
-})
-  },
+  }
 })

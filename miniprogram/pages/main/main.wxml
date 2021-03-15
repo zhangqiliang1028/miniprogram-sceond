@@ -6,8 +6,11 @@
   <view class="ARview" bindtap="threeDClick">
     进入AR
   </view>
-  <view class="map" bindtap="mapClick">
-    进入地图
+  <view class="TXmap" bindtap="mapClick">
+    腾讯地图
+  </view>
+  <view class="minMap" bindtap="minMapClick">
+    室内导航
   </view>
   <!--
 <view class="media" bindtap="mediaDClick">
