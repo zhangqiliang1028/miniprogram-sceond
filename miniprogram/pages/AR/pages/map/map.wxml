@@ -1,26 +1,35 @@
-<!--pages/AR/pages/map/map.wxml-->
-<map id="map" 
-      longitude="{{longitude}}"
-      latitude="{{latitude}}"
-      scale="{{scale}}"
-      controls="{{controls}}"
-      markers="{{markers}}"   
-      polyline="{{polyline}}" 
-      circles="{{circles}}" 
-      setting = "{{setting}}"
-      enable-poi = "true"
-      enable-building = "true"
-      bindmarkertap = "markertap"
-      bindcontroltap = "controltap"
-      bindregionchange = "regionchange"
-      bindanchorpointtap = "anchorpointtap"
-      style="width: 100%; height:{{screenHeight}}px;">
-      <cover-view>
-        <cover-view slot="callout">
-          <cover-view marker-id="1"></cover-view>
-          <cover-view marker-id="2"></cover-view>
-        </cover-view>
-      </cover-view>
+<view class="tui-map"
+  bindtouchstart="touchstart"
+	bindtouchmove="touchmove"
+	bindtouchcancel="touchcancel"
+	bindtouchend="touchend"
+	bindtap="tap"
+	bindlongtap="longtap"
+>
 
-</map>
+  <map id="map" longitude="{{currentLo}}" latitude="{{currentLa}}" markers="{{markers}}" polyline="{{polyline}}"  include-points="{{includePoints}}" setting = "{{setting}}" show-location style="width: 100%; height: 100%;">
+		<canvas 
+  class="webgl"
+  type="webgl"
+	id="webgl"
 
+  ></canvas>
+	</map>
+	<view class="tui-search-bottom {{show ? '' : 'tui-hide'}}">
+	  <view class="page-group">
+	    <view class="page-nav-list {{statusType == 'car' ? 'active' : ''}}" data-type="car" bindtap="goTo">驾车</view>
+	    <view class="page-nav-list {{statusType == 'walk' ? 'active' : ''}}" data-type="walk" bindtap="goTo">步行</view>
+	    <view class="page-nav-list {{statusType == 'ride' ? 'active' : ''}}" data-type="ride" bindtap="goTo">骑行</view>
+	  </view>
+	  <view class="tui-warn">
+	    {{distance}}米
+	  </view>
+	  <view class="tui-warn">
+	    {{duration}}分钟
+	  </view>
+	</view>
+</view>
+<view class="tui-map-search" bindtap="getAddress">
+   <icon size='20' type='search' class='tui-map-search-icon'></icon> 
+  <input class="tui-map-input" placeholder="搜索" focus="{{focusStatus}}"></input>
+</view>

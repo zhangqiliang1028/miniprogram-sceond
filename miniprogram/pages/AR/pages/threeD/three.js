@@ -39,7 +39,6 @@ Page({
       this.countTime();     
   },
   init:function() {
-    
     camera = new THREE.PerspectiveCamera(70, canvas.width / canvas.height, 1, 10000);
     scene = new THREE.Scene();
     scene.name = "场景";
