@@ -1,1 +1,44 @@
 /* pages/AR/pages/minMap/minMap.wxss */
+.return{
+  background-color: greenyellow;
+  width: 20%;
+  margin-left: 78%;
+  margin-top: 2%;
+  height: 30px;
+  border-radius:5px;
+  line-height: 30px;
+  text-align:center;
+}
+.research{
+  background-color: greenyellow;
+  width: 20%;
+  margin-left: 78%;
+  margin-top: 2%;
+  height: 30px;
+  border-radius:5px;
+  line-height: 30px;
+  text-align:center;
+}
+.basiccamera{
+  width: 100%;
+}
+.webgl{
+  width: 100%;
+  
+}
+.currentLocation{
+  position: absolute;
+  width: 80%;
+  margin-left: 10%;
+  border: solid 0px;
+  margin-top: 97%;
+  color: rgb(0, 255, 0);
+  
+}
+.messageView{
+  position: fixed;
+  width: 100%;
+  margin-top: 95%;
+  text-align: center;
+  color: white;
+}

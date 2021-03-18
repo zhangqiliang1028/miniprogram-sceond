@@ -1,6 +1,6 @@
 /* pages/AR/pages/map/map.wxss */
 .tui-map-search{
-  width: 90%;
+  width: 70%;
   height: 80rpx;
   position: fixed;
   top: 1%;
@@ -72,4 +72,13 @@
 .webgl{
   width: 100%;
   height: 100%;
+}
+.shijingResearch{
+  width: 23%;
+  height: 80rpx;
+  position: fixed;
+  top: 1%;
+  left: 76%;
+  line-height: 70rpx;
+  background-color: greenyellow;
 }

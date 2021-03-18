@@ -4,16 +4,18 @@
 	bindtouchcancel="touchcancel"
 	bindtouchend="touchend"
 	bindtap="tap"
-	bindlongtap="longtap"
+	bindlongtap="longpress"
 >
 
   <map id="map" longitude="{{currentLo}}" latitude="{{currentLa}}" markers="{{markers}}" polyline="{{polyline}}"  include-points="{{includePoints}}" setting = "{{setting}}" show-location style="width: 100%; height: 100%;">
+	<!--
 		<canvas 
   class="webgl"
   type="webgl"
 	id="webgl"
 
   ></canvas>
+	-->
 	</map>
 	<view class="tui-search-bottom {{show ? '' : 'tui-hide'}}">
 	  <view class="page-group">
@@ -30,6 +32,9 @@
 	</view>
 </view>
 <view class="tui-map-search" bindtap="getAddress">
-   <icon size='20' type='search' class='tui-map-search-icon'></icon> 
+  <icon size='20' type='search' class='tui-map-search-icon'></icon> 
   <input class="tui-map-input" placeholder="搜索" focus="{{focusStatus}}"></input>
+</view>
+<view class="shijingResearch" bindtap="shijingResearch">
+  实景导航
 </view>

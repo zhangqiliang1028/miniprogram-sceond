@@ -1,2 +1,39 @@
 <!--pages/AR/pages/minMap/minMap.wxml-->
+<map id="map" longitude="{{currentLo}}" latitude="{{currentLa}}" markers="{{markers}}" polyline="{{polyline}}"  include-points="{{includePoints}}" setting = "{{setting}}" show-location="true" style="width: 100%; height: {{screenHeight}}px;">
+        <!--摄像头层-->
+<camera 
+    class="basiccamera"
+    mode="normal" 
+    device-position="back" 
+    flash="auto" 
+    frame-size="medium"
+    style="position:fixed;top:0;height:100%;z-index:0;">
+    <canvas 
+  class="webgl"
+  type="webgl"
+  id="webgl"
+  style="width: 100%; height: {{screenHeight}}px;"
+  >
+  <view class="return" catchtap="return">
+      返回
+  </view>
+  <view class="research" catchtap="research">
+      {{researchInfo}}
+  </view>
+<view class='messageView'>
+  <view class='position'>经度:{{currentLo}}</view>
+  <view class='position'>纬度:{{currentLa}}</view>
+  <view class='alpha'>角度:{{gamma}}</view>
+</view>
+
+  <text class="currentLocation">
+    {{currentLocationInfo}}
+  </text>
+</canvas>
+
+</camera>
+</map>
+
+
+
 

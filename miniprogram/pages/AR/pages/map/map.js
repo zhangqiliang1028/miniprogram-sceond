@@ -1,15 +1,13 @@
 var amapFile = require('../../../../libs/amap-wx');
 import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
-var camera,canvas,canvas2d,scene,THREE,light,raycaster,renderer,ctx,MapContext;
-var mouse,object,object1,object1scale = 0,mesh;
-var tapedObjs = [];
-var startinfotime,endinfotime,infoshowtime = 2000;
+var camera,canvas,scene,THREE,light,raycaster,renderer,ctx,MapContext,amap;//高德地图
+var object,object1,object1scale = 0;
 Page({
   data: {
     screenHeight: wx.getSystemInfoSync().windowHeight,
     screenWidth: wx.getSystemInfoSync().windowWidth,
     key: '2006539e53e460b0de628886ac9b0b36',
-    show: false,
+    show: true,
     currentLo : null,
     currentLa : null,
     newCurrentLo : null,
@@ -23,12 +21,13 @@ Page({
     setting : {
       skew: 30,
       rotate: 0,
-      scale: 14,
+      scale: 18,
       showLocation: true,
       showScale: true,
       subKey: '',
       layerStyle: 1,
       enableZoom: true,
+      enablepoi:true,
       enableScroll: true,
       enableRotate: true,
       showCompass: true,
@@ -41,40 +40,18 @@ Page({
   },
   onLoad(){
     var that = this;
-    wx.createSelectorQuery()
-      .select('#webgl')
-      .node()
-      .exec((res) => {
-        canvas = res[0].node;
-        that.canvas = canvas;
-        THREE = createScopedThreejs(that.canvas);
-        console.log(THREE);
-        that.init();
-        that.render();
-        console.log("屏幕宽高：["+that.data.screenWidth+","+that.data.screenHeight+"]");
-      })
-      MapContext = wx.createMapContext('#map' )
-      console.log(MapContext)
-      MapContext.toScreenLocation({
-        success: res => {
-          console.log('success:', res)
-        },
-        fail: err => {
-          console.error('fail:', err)
-        }
-      })
-      
-    var _this = this;
+    amap = new amapFile.AMapWX({ key: this.data.key });
+    MapContext = wx.createMapContext('#map',this )
     wx.getLocation({
       type: 'gcj02',
       success(res){
-        _this.setData({ 
+        that.setData({ 
           currentLo: res.longitude, 
           currentLa: res.latitude,
-          includePoints: [{
-            longitude: res.longitude,
-            latitude: res.latitude
-          }],
+          //includePoints: [{
+          //  longitude: res.longitude,
+          //  latitude: res.latitude
+          //}],
           setting:{
 
           },
@@ -82,7 +59,7 @@ Page({
             id: 0,
             longitude: res.longitude,
             latitude: res.latitude,
-            title: res.address,
+            title: "当前位置",
             iconPath: './images/location.png',
             width: 32,
             height: 32
@@ -90,35 +67,65 @@ Page({
         });
       }
     })
+    that.getAround();
+  },
+  getAround(){
+    var that = this;
+    amap.getPoiAround({
+      success: function(res){
+        //成功回调
+        var markers = that.data.markers;
+        var l = markers.length;
+        for(let i=l;i<l+res.markers.length;i++){ 
+          markers.push({
+            id: i,
+            longitude: res.markers[i-l].longitude,
+            latitude: res.markers[i-l].latitude,
+            title: res.markers[i-l].address,
+            iconPath: './images/1.jpg',
+            width: 16,
+            height: 16,
+          });
+        }
+        that.setData({
+          markers: markers,
+        });
+        console.log(that.data.markers)
+      },
+      fail: function(info){
+        //失败回调
+        console.log(info)
+      }
+    })
   },
   getAddress(e){
-    var _this = this;
+    var that = this;
     wx.chooseLocation({
       success(res){
-        var markers = _this.data.markers;
+        var markers = that.data.markers;
         markers.push({
           id: 0,
           longitude: res.longitude,
           latitude: res.latitude,
           title: res.address,
           iconPath: './images/1.jpg',
-          width: 32,
-          height: 32
+          width: 16,
+          height: 16
         });
  
-        var points = _this.data.includePoints;
+        var points = that.data.includePoints;
         points.push({
           longitude: res.longitude,
           latitude: res.latitude
         });
-        _this.setData({
+        that.setData({
           newCurrentLo: res.longitude,
           newCurrentLa: res.latitude,
           includePoints: points,
           markers: markers,
           show:true
         });
-        _this.getPolyline(_this.data.statusType);
+        that.getPolyline(that.data.statusType);
       }
     });
   },
@@ -155,7 +162,7 @@ Page({
     }
   },
   getPolyline(_type){
-    var amap = new amapFile.AMapWX({ key: this.data.key });
+    
     var self = this;
     switch (_type){
       case 'car':
@@ -227,21 +234,28 @@ Page({
     canvas.requestAnimationFrame(this.render); //循环执行渲染
   },
   touchstart(e){
-    console.log(e)
+    //console.log(e)
   },
   touchmove(e){
-    console.log(e)
+    //console.log(e)
   },
   touchcancel(e){
-    console.log(e)
+    //console.log(e)
   },
   touchend(e){
-    console.log(e)
+    //console.log(e)
   },
   tap(e){
-    console.log(e)
+    //console.log(e)
   },
-  longtap(e){
+  longpress(e){
+    //console.log(e)
+  },
+  shijingResearch(e){
     console.log(e)
-  }
+    wx.navigateTo({
+      url: '../minMap/minMap',
+    })
+  },
+
 })
