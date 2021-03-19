@@ -23,8 +23,17 @@
   width: 100%;
 }
 .webgl{
+  top: 0%;
+  left: 0%;
   width: 100%;
-  
+
+}
+.canvas2d{
+  position: absolute;
+  top: 0%;
+  left: 50%;
+  width: 50%;
+  background: green;
 }
 .currentLocation{
   position: absolute;

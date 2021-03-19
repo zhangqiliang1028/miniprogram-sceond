@@ -252,7 +252,6 @@ Page({
     //console.log(e)
   },
   shijingResearch(e){
-    console.log(e)
     wx.navigateTo({
       url: '../minMap/minMap',
     })

@@ -1,18 +1,23 @@
 // pages/AR/pages/minMap/minMap.js
 var amapFile = require('../../../../libs/amap-wx');
+var util = require('../util/util')
 import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
-var camera,canvas,scene,THREE,light,raycaster,renderer,ctx,MapContext,amap;//高德地图
-var object,object1,object1scale = 0;
+var camera,canvas,scene,THREE,light,raycaster,renderer,ctx,gl,MapContext,amap;//高德地图
+var object,object1,object1scale = 0,tapedObjs=[];
+var mouse;
 Page({
   data: {
     screenHeight: wx.getSystemInfoSync().windowHeight,
     screenWidth: wx.getSystemInfoSync().windowWidth,
+    currentLocScreen:[0,0],
     alpha:0, //东西南北，范围值为 [0, 2*PI)。逆时针转动为正。
     beta:0,  //上下前后，范围值为 [-1*PI, PI)。顶部朝着地球表面转动为正。也有可能朝着用户为正。
     gamma:0,  //左右，范围值为 [-1*PI, PI)。右边朝着地球表面转动为正
     key: '2006539e53e460b0de628886ac9b0b36',
     show: true,
     isResearch:false,
+    isLocationListen:false,
+    isDeviceListen:false,
     researchInfo:'搜索',
     currentLocationInfo:'',
     currentLo : null,
@@ -31,26 +36,34 @@ Page({
       showScale: true,
       enablescroll:false,
     }
-    
   },
   onLoad(){
     var that = this;
     amap = new amapFile.AMapWX({ key: this.data.key });
-    
-    wx.createSelectorQuery()
-      .select('#webgl')
+    const query = wx.createSelectorQuery()
+    query.select('#webgl')
       .node()
       .exec((res) => {
         canvas = res[0].node;
         that.canvas = canvas;
         THREE = createScopedThreejs(that.canvas);
-        //console.log(THREE);
+        gl = canvas.getContext('webgl', { alpha: true });
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        console.log(gl)
         that.init();
         that.render();
         console.log("屏幕宽高：["+that.data.screenWidth+","+that.data.screenHeight+"]");
       })
-      
-      MapContext = wx.createMapContext('map' )
+    MapContext = wx.createMapContext('map' )
+    wx.openSetting({
+      success (res) {
+        console.log(res.authSetting)
+         res.authSetting = {
+           "scope.userInfo": true,
+           "scope.userLocation": true
+         }
+      }
+    })
     wx.getLocation({
       type: 'gcj02',
       success(res){
@@ -73,7 +86,6 @@ Page({
         //console.log(that.data.markers)
       }
     })
-
     that.getAround();
   },
   getAround(){
@@ -140,24 +152,15 @@ Page({
     scene = new THREE.Scene();
     scene.name = "场景";
     raycaster = new THREE.Raycaster();
-    //scene.background = new THREE.Color(0x0ffff0);
+    mouse = new THREE.Vector2(0,0);
     var light = new THREE.DirectionalLight(0xffffff, 1);
-    //var gl = canvas.getContext('webgl', { alpha: true }); 
     light.position.set(1, 1, 1).normalize();
     scene.add(light);
-    let geometry = new THREE.BoxBufferGeometry(5, 10, 5);
-    let geometry1 = new THREE.DodecahedronGeometry(5);
+    let geometry = new THREE.DodecahedronGeometry(5);
     object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
     object.position.z =  -100;
-    object.scale.y = 1;
-    object.name = "长方体"
-    object.scale.set(2,2,2);
+    object.name = "正十二面体"
     //scene.add(object);
-    object1 = new THREE.Mesh(geometry1, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
-    object1.position.z =  -100;
-    object1.name = "正十二面体"
-    //scene.add(mesh);
-    scene.add(object1);
     renderer = new THREE.WebGLRenderer({
       canvas:canvas,
       antialias:true,
@@ -167,20 +170,17 @@ Page({
     renderer.setSize(canvas.width, canvas.height);
   },
   render:function() {
-
-    object.rotation.y = 1;
-    object.material =  new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff });
-    object1.rotation.x += 0.01;
-    object1.rotation.y += 0.02;
-    object1.rotation.z += 0.03;
+    /*
+    object.material = new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff })
     if(Math.abs(object1scale)>0.0001){
-      if(object1.scale.x>1.5||object1.scale.x<0.7){
+      if(object.scale.x>1.5||object.scale.x<0.7){
         object1scale = -1*object1scale;
       }
-      object1.scale.x+=object1scale;
-      object1.scale.y+=object1scale;
-      object1.scale.z+=object1scale;
+      object.scale.x+=object1scale;
+      object.scale.y+=object1scale;
+      object.scale.z+=object1scale;
     }
+    */
     renderer.render(scene, camera);
     canvas.requestAnimationFrame(this.render); //循环执行渲染
   },
@@ -196,49 +196,91 @@ Page({
   touchend(e){
     //console.log(e)
   },
-  tap(e){
-    //console.log(e)
+  touchTap(e){
+    this.setData({
+      mytouch:[e.touches[0].pageX,e.touches[0].pageY]
+    })
+    this.raycaster(this.data.mytouch);
+    if(tapedObjs.length>0){
+      this.setData({
+        objname:tapedObjs[0].object.name,
+      })
+      if(tapedObjs[0].object.name == "正十二面体"){
+
+      }
+    }else{
+      this.setData({
+        objname:"",
+      })
+    }
+    this.setData({
+      info:"点击了一下"+this.data.objname
+    })
   },
   longpress(e){
     //console.log(e)
   },
   //--------------------------------------------------------------------
-  onHide: function (){
-    wx.stopDeviceMotionListening({})
-    wx.stopLocationUpdate({})
+  onHide: function (e){
+    var that = this;
+    if(that.data.isLocationListen){
+      wx.stopLocationUpdate({})
+      that.setData({
+        isLocationListen:false
+      })
+    }
+    if(that.data.isDeviceListen){
+      wx.stopDeviceMotionListening({})
+      that.setData({
+        isDeviceListen:false
+      })
+    }
   },
   return(){
-    wx.stopDeviceMotionListening({})
-    wx.stopLocationUpdate({})
     wx.navigateBack({
     delta: 1
   })
   },
+  raycaster:function(e){
+    mouse.x = (e[0] / this.data.screenWidth) * 2 - 1;
+    mouse.y = -(e[1] / this.data.screenHeight) * 2 + 1;
+    console.log(mouse.x+" "+mouse.y);
+    raycaster.setFromCamera(mouse, camera);
+    let intersects = raycaster.intersectObjects(scene.children,true); //object检测与射线相交的物体,recursive为true检查后代对象，默认值为false
+    tapedObjs.splice(0);
+    if(intersects.length>0){
+      for(let i=0;i<intersects.length;i++){
+        tapedObjs.push(intersects[i]);
+      }
+      
+    }
+    console.log("点击到的物体数量："+tapedObjs.length);
+  },
   research(){
+
     var that = this;
-    if(!this.data.isResearch){
+    if(!that.data.isResearch){
       that.setData({
         researchInfo:'搜索中...',
         isResearch:true,
       })
       wx.startDeviceMotionListening({
-        
+        success:function(){
+          console.log("开始设备监听")
+          that.setData({
+            isDeviceListen:true,
+          })
+        }
       })
       wx.startLocationUpdate({
         success: (res) => {
           console.log("开始位置监听")
+          that.setData({
+            isLocationListen :true,
+          })
         },
       })
-      var flag =1;
       wx.onDeviceMotionChange(function (res) {
-        wx.removeStorage({
-          key: 'key',
-          success (res) {
-            console.log(res)
-          }
-        })
-        flag++;
-        if(flag%100 == 0){
           console.log(res)
           var alpha = parseFloat(res.alpha);
           var beta = parseFloat(res.beta);
@@ -248,26 +290,36 @@ Page({
             beta: beta,
             gamma: gamma,
           })
-          flag = 1;
-        }
       })
+    
       wx.onLocationChange((result) => {
         that.setData({
           currentLo:result.longitude,
           currentLa:result.latitude
         })
       })
-      this.showBuild();
+      that.showBuild()
     }
     else{
+      for(let i=0;i<scene.children.length;i++){
+        if(scene.children[i].name =="正十二面体"){
+          scene.remove(scene.children[i])
+        }
+      }
       wx.stopDeviceMotionListening({
         success: (res) => {
           console.log('设备监听结束')
+          that.setData({
+            isDeviceListen:false,
+          })
         },
       })
       wx.stopLocationUpdate({
         success: (res) => {
           console.log('位置监听结束')
+          that.setData({
+            isLocationListen:false,
+          })
         },
       })
       that.setData({
@@ -278,14 +330,16 @@ Page({
     
   },
   showBuild:function(){
-    var screenX,screenY;
+    var that = this;
     MapContext.toScreenLocation({
       latitude:this.data.currentLa,
       longitude:this.data.currentLo,
       success:function(res){
-        screenX = res.x;
-        screenY = res.y;
-        console.log("当前位置:",screenX,screenY);
+        console.log("当前位置:",res.x,res.y);
+        that.setData({
+          currentLocScreen:[res.x,res.y],
+        })
+        
       }
     })
     var mm = this.data.markers
@@ -296,9 +350,22 @@ Page({
           longitude:mm[key].longitude,
           success:function(res){
             console.log(mm[key].title,':',res.x,res.y);
+            //if(Math.abs(Math.atan((res.y - that.data.currentLocScreen[1])/(res.x - that.data.currentLocScreen[0]))-that.data.alpha)<0.2){
+              that.drawBuildings(mm[key].title,res)
+            //}
+            
           }
         })
       }
     }
+  },
+  drawBuildings:function(name,pos){
+
+    var co = object.clone();
+    co.position.x = Math.random()*60 - 30;
+    co.position.y = Math.random()*60 - 30;
+
+    scene.add(co)
+    console.log(co.position)
   }
 })
