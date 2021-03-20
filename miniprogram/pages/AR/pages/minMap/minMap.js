@@ -10,7 +10,7 @@ Page({
     screenHeight: wx.getSystemInfoSync().windowHeight,
     screenWidth: wx.getSystemInfoSync().windowWidth,
     currentLocScreen:[0,0],
-    tip:[],
+    tip:null,
     alpha:0, //东西南北，范围值为 [0, 2*PI)。逆时针转动为正。
     beta:0,  //上下前后，范围值为 [-1*PI, PI)。顶部朝着地球表面转动为正。也有可能朝着用户为正。
     gamma:0,  //左右，范围值为 [-1*PI, PI)。右边朝着地球表面转动为正
@@ -153,12 +153,11 @@ Page({
     scene.name = "场景";
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2(0,0);
-    light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(1, 1, 1).normalize();
+    light = new THREE.PointLight();
+    light.position.set(0, 10, 0).normalize();
     scene.add(light);
-    let geometry = new THREE.DodecahedronGeometry(3);
+    let geometry = new THREE.DodecahedronGeometry(5);
     object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
-    object.position.z =  -100;
     object.name = "preObject"
     //scene.add(object);
     renderer = new THREE.WebGLRenderer({
@@ -170,17 +169,13 @@ Page({
     renderer.setSize(canvas.width, canvas.height);
   },
   render:function() {
-    /*
-    object.material = new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff })
-    if(Math.abs(object1scale)>0.0001){
-      if(object.scale.x>1.5||object.scale.x<0.7){
-        object1scale = -1*object1scale;
-      }
-      object.scale.x+=object1scale;
-      object.scale.y+=object1scale;
-      object.scale.z+=object1scale;
+    if(this.data.alpha<=180){
+      camera.rotation.y = -this.data.alpha/360*Math.PI*2;
+    }else{
+      camera.rotation.y = -(this.data.alpha-360)/360*Math.PI*2;
     }
-    */
+    
+    //camera.rotateY(0.01)
     renderer.render(scene, camera);
     canvas.requestAnimationFrame(this.render); //循环执行渲染
   },
@@ -197,6 +192,7 @@ Page({
     //console.log(e)
   },
   touchTap(e){
+    var that= this;
     this.setData({
       mytouch:[e.touches[0].pageX,e.touches[0].pageY]
     })
@@ -205,13 +201,14 @@ Page({
       this.setData({
         objname:tapedObjs[0].object.name,
       })
-      
-      if(tapedObjs[0].object.name == ' '){
+      that.setData({
+        tip:'888'
+      })
         //转到点击目标的详情页面
-      }
+        util.toDetailPage(tapedObjs[0].object);
     }else{
       this.setData({
-        objname:tapedObjs[0].object.name,
+        objname:null,
       })
     }
     this.setData({
@@ -261,8 +258,6 @@ Page({
     var that = this;
     if(!that.data.isResearch){
       //设置一个组，所有检测到的目标加入到组中
-      buildGroup = new THREE.Group();
-      scene.add(buildGroup);
       that.setData({
         researchInfo:'搜索中...',
         isResearch:true,
@@ -285,14 +280,14 @@ Page({
       })
       wx.onDeviceMotionChange(function (res) {
           console.log(res)
-          var alpha = parseFloat(res.alpha);
-          var beta = parseFloat(res.beta);
-          var gamma = parseFloat(res.gamma);
-          that.setData({
-            alpha: alpha,
-            beta: beta,
-            gamma: gamma,
-          })
+          let alpha = res.alpha.toFixed(2);
+          //var beta = parseFloat(res.beta);
+          //var gamma = parseFloat(res.gamma);
+            that.setData({
+              alpha: alpha,
+              //beta: parseInt(beta) - parseInt(beta)%0.1,
+              //gamma: parseInt(gamma) - parseInt(gamma)%0.1,
+            })
       })
     
       wx.onLocationChange((result) => {
@@ -314,8 +309,6 @@ Page({
       that.showBuild()
     }
     else{
-      //clearInterval(timer1)
-      scene.remove(buildGroup)
       wx.stopDeviceMotionListening({
         success: (res) => {
           console.log('设备监听结束')
@@ -354,50 +347,28 @@ Page({
     var mm = this.data.markers
     for(let key in mm){
       if(mm[key].title!="当前位置"){
+        that.drawBuildings(mm[key],{x:Math.random()*700-350,y:Math.random()*800-400})
         MapContext.toScreenLocation({
           latitude:mm[key].latitude,
           longitude:mm[key].longitude,
           success:function(res){
-            //console.log(mm[key].title,':',res.x,res.y);
-            that.setData({
-              
-            })
-            if(that.isSameOriention(res)){
               that.drawBuildings(mm[key],res)
-            }
           }
         })
       }
     }
-    //var timer1 = setInterval(that.showBuild,1000);
   },
-  removeBuild:function(obj){
-    buildGroup.remove(obj);
-  },
-  drawBuildings:function(name,pos){
+  drawBuildings:function(obj,pos){
+    let _X = (pos.x - this.data.currentLocScreen[0])>=0?1:-1;
+    let _Y = (pos.y - this.data.currentLocScreen[1])>=0?1:-1;
+    
     let co = object.clone();
-    co.position.x = Math.random()*50 - 25;
-    co.position.y = Math.random()*50 - 25;
-    let pp = this.getPlane(10,6,name.title)
-    pp.position.set(6,4,4)
+    co.position.set(_X*(Math.random()*50+50),Math.random()*60-30,_Y*(Math.random()*50+50));
+    co.lookAt(camera.position)
+    let pp = this.getPlane(10,6,obj.title)
+    pp.position.set(4,7.5,0)
     co.add(pp)
-    buildGroup.add(co)
-  },
-  isSameOriention:function(res){
-    let _X = res.x- this.data.currentLocScreen[0];
-    let _Y = res.y- this.data.currentLocScreen[1];
-    let angle = this.data.alpha;
-    let _angle = Math.abs(Math.atan(_Y/_X));//范围是-PI/2~PI/2
-    if(Math.abs(_X)<5&&_Y>0){_angle = 90}
-    else if(Math.abs(_X)<5&&_Y<0){_angle = 270}
-    else if(_X>0&&_Y>=0){_angle = Math.atan(_Y/_X)}
-    else if(_X>0&&_Y<0){_angle= 360 - _angle}
-    else if(_X<0&&_Y>=0){_angle= 180 - _angle}
-    else if(_X<0&&_Y<0){_angle= 180 + _angle}
-    if(Math.abs(angle-_angle)<10){
-      return true;
-    }
-    return false;
+    scene.add(co)
   },
   getPlane:function(w,h,name){
         // 创建一个平面对象Plane
@@ -409,13 +380,13 @@ Page({
         var textureLoader = new THREE.TextureLoader();
         var texture = textureLoader.load('../util/1.jpg');
         var material = new THREE.MeshPhongMaterial({
-          //color:0xff9900, //颜色
-          opacity:0.8,  //透明度
-          transparent:false,  //是否开启透明度
-          wireframe:false, //将几何图形渲染为线框。 默认值为false
-          shininess:12, //高光
-          side:THREE.DoubleSide, //双面显示材质
-          map: texture,//设置颜色贴图属性值
+          color:0xffffff, //颜色
+          //opacity:1,  //透明度
+          //transparent:false,  //是否开启透明度
+          //wireframe:false, //将几何图形渲染为线框。 默认值为false
+          //shininess:12, //高光
+          //side:THREE.DoubleSide, //双面显示材质
+          //map: texture,//设置颜色贴图属性值
         }); //材质对象Material
         texture.minFilter = THREE.LinearFilter;
         var plane = new THREE.Mesh(geometry, material); // 创建网格模型对象

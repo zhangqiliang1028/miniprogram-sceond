@@ -216,18 +216,23 @@ function responseClickObj(obj,pos,THREE,ctx) {
     return mesh;
   }
   
-function cylinderMesh(R, h, x, y, z) {    // 球体网格模型创建函数
-  var geometry = new THREE.CylinderGeometry(R, R, h, 25, 25); //球体几何体
-  var material = new THREE.MeshPhongMaterial({
-    color: 0x0000ff
-  }); //材质对象Material
-  var mesh = new THREE.Mesh(geometry, material); // 创建网格模型对象
-  mesh.position.set(x, y, z);
-  return mesh;
+  function cylinderMesh(R, h, x, y, z) {    // 球体网格模型创建函数
+    var geometry = new THREE.CylinderGeometry(R, R, h, 25, 25); //球体几何体
+    var material = new THREE.MeshPhongMaterial({
+      color: 0x0000ff
+    }); //材质对象Material
+    var mesh = new THREE.Mesh(geometry, material); // 创建网格模型对象
+    mesh.position.set(x, y, z);
+    return mesh;
+  }
 }
+function toDetailPage(obj){
+  wx.navigateTo({
+    url: '../rectangle/rectangle?name = obj.name&id = obj.id',
+  })
 }
 
 module.exports = {
   responseClickObj: responseClickObj,
-
+  toDetailPage:toDetailPage,
 }

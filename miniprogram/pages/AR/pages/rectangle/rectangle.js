@@ -15,12 +15,18 @@ Page({
       posX: 150,
       posY: 350,
     },
+    name:'',
+    id:'',
     animation:{},
   },
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
+    this.setData({
+      name:options.name,
+      id:options.id,
+    })
     //1、引用数据库，注意数据库权限
     const db = wx.cloud.database({
       //这个是环境ID不是环境名称     

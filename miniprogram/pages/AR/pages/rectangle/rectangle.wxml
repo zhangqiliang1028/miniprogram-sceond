@@ -1,7 +1,8 @@
 <!--pages/AR/pages/rectangle/rectangle.wxml-->
 
 <movable-area class="movable-area" style="height:{{screenHeight}}px;">
-  <text class="content">这是长方体的详细说明页面</text>
+  <text class="content">这是{{name}}的详细说明页面</text>
+  <view >ID:{{id}}</view>
   <view class='a' wx:for="{{ne}}"><!--wx:for是微信数据绑定的一种方式，该数组有多少数据就显示多少个view-->
       <!--index为每个数据对应的下标-->
       <view >序号：{{index+1}}</view>
