@@ -15,7 +15,8 @@
   style="height: {{screenHeight}}px;"
   bindtap="touchTap"
   >
-  <view class="return" catchtap="return">
+  <canvas type="2d" id="myCanvas" style="width:100%;height:100%">
+    <view class="return" catchtap="return">
       返回
   </view>
   <view class="research" catchtap="research">
@@ -25,11 +26,15 @@
   <view class='position'>经度:{{currentLo}}</view>
   <view class='position'>纬度:{{currentLa}}</view>
   <view class='alpha'>角度:{{alpha}}</view>
+  <view class='alpha'>tip:{{tip}}</view>
 </view>
 
   <text class="currentLocation">
     {{currentLocationInfo}}
   </text>
+    
+  </canvas>
+  
 </canvas>
 
 </camera>

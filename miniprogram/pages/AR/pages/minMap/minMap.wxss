@@ -51,3 +51,10 @@
   text-align: center;
   color: white;
 }
+.buildInfo{
+  position: fixed;
+  text-align:center;
+  font-size: 10px;
+  width: 100px;
+  display: none;
+}
