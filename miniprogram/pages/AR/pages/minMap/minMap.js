@@ -2,7 +2,7 @@
 var amapFile = require('../../../../libs/amap-wx');
 var util = require('../util/util')
 import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
-var camera,canvas,scene,THREE,light,raycaster,renderer,ctx,gl,MapContext,amap;//高德地图
+var camera,canvas,canvas2d,scene,THREE,light,raycaster,renderer,ctx,gl,MapContext,amap;//高德地图
 var object,buildGroup,tapedObjs=[];
 var mouse;
 Page({
@@ -151,11 +151,14 @@ Page({
     camera = new THREE.PerspectiveCamera(70, canvas.width / canvas.height, 1, 10000);
     scene = new THREE.Scene();
     scene.name = "场景";
+    var axisHelper = new THREE.AxesHelper(250);
+    scene.add(axisHelper);
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2(0,0);
     light = new THREE.PointLight();
     light.position.set(0, 10, 0).normalize();
     scene.add(light);
+    this.getManyShape();//场景中添加各种形状的物体
     let geometry = new THREE.DodecahedronGeometry(5);
     object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
     object.name = "preObject"
@@ -170,12 +173,11 @@ Page({
   },
   render:function() {
     if(this.data.alpha<=180){
-      camera.rotation.y = -this.data.alpha/360*Math.PI*2;
+      //camera.rotation.y = -this.data.alpha/360*Math.PI*2;
     }else{
-      camera.rotation.y = -(this.data.alpha-360)/360*Math.PI*2;
+      //camera.rotation.y = -(this.data.alpha-360)/360*Math.PI*2;
     }
-    
-    //camera.rotateY(0.01)
+    camera.rotateY(0.01)
     renderer.render(scene, camera);
     canvas.requestAnimationFrame(this.render); //循环执行渲染
   },
@@ -258,6 +260,8 @@ Page({
     var that = this;
     if(!that.data.isResearch){
       //设置一个组，所有检测到的目标加入到组中
+      buildGroup = new THREE.Group()
+      scene.add(buildGroup);
       that.setData({
         researchInfo:'搜索中...',
         isResearch:true,
@@ -309,6 +313,7 @@ Page({
       that.showBuild()
     }
     else{
+      scene.remove(buildGroup);
       wx.stopDeviceMotionListening({
         success: (res) => {
           console.log('设备监听结束')
@@ -334,6 +339,7 @@ Page({
   },
   showBuild:function(){
     var that = this;
+    
     MapContext.toScreenLocation({
       latitude:this.data.currentLa,
       longitude:this.data.currentLo,
@@ -344,10 +350,11 @@ Page({
         })
       }
     })
+    
     var mm = this.data.markers
     for(let key in mm){
       if(mm[key].title!="当前位置"){
-        that.drawBuildings(mm[key],{x:Math.random()*700-350,y:Math.random()*800-400})
+        //that.drawBuildings(mm[key],{x:Math.random()*700-350,y:Math.random()*800-400})
         MapContext.toScreenLocation({
           latitude:mm[key].latitude,
           longitude:mm[key].longitude,
@@ -359,16 +366,18 @@ Page({
     }
   },
   drawBuildings:function(obj,pos){
-    let _X = (pos.x - this.data.currentLocScreen[0])>=0?1:-1;
-    let _Y = (pos.y - this.data.currentLocScreen[1])>=0?1:-1;
+    let _X = (pos.x - this.data.currentLocScreen[0]);
+    let _Y = (pos.y - this.data.currentLocScreen[1]);
     
     let co = object.clone();
-    co.position.set(_X*(Math.random()*50+50),Math.random()*60-30,_Y*(Math.random()*50+50));
+    //co.position.set(_X*(Math.random()*50+50),Math.random()*60-30,_Y*(Math.random()*50+50));
+    co.position.set(_X/2,Math.random()*60-30,_Y/2);
     co.lookAt(camera.position)
     let pp = this.getPlane(10,6,obj.title)
+    //let pp = this.getText(10,6,obj.title)
     pp.position.set(4,7.5,0)
     co.add(pp)
-    scene.add(co)
+    buildGroup.add(co);
   },
   getPlane:function(w,h,name){
         // 创建一个平面对象Plane
@@ -380,16 +389,95 @@ Page({
         var textureLoader = new THREE.TextureLoader();
         var texture = textureLoader.load('../util/1.jpg');
         var material = new THREE.MeshPhongMaterial({
-          color:0xffffff, //颜色
+          //color:0xffffff, //颜色
           //opacity:1,  //透明度
-          //transparent:false,  //是否开启透明度
-          //wireframe:false, //将几何图形渲染为线框。 默认值为false
+          transparent:false,  //是否开启透明度
+          wireframe:false, //将几何图形渲染为线框。 默认值为false
           //shininess:12, //高光
           //side:THREE.DoubleSide, //双面显示材质
-          //map: texture,//设置颜色贴图属性值
+          map: texture,//设置颜色贴图属性值
         }); //材质对象Material
         texture.minFilter = THREE.LinearFilter;
         var plane = new THREE.Mesh(geometry, material); // 创建网格模型对象
         return plane;
-  }
+  },
+  getText:function(w,h,name){
+    const query = wx.createSelectorQuery()
+    query.select('#myCanvas')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        canvas2d = res[0].node
+        ctx = canvas2d.getContext('2d')
+        canvas2d.width = 300
+        canvas2d.height = 300
+      })
+  //制作矩形
+  ctx.fillStyle = "rgba(255,165,0,0.8)";
+  ctx.fillRect(0, 0, 300, 300)
+   //设置文字
+   ctx.fillStyle = "#fff";
+   ctx.font = 'normal 18pt "楷体"'
+   ctx.fillText('模型介绍', 100, 20)
+   let textWord = '该模型由小少小同学制作完成'
+   //文字换行
+   let len = parseInt(textWord.length / 10)
+   for (let i = 0; i < (len + 1); i++) {
+     let space = 10
+     if (i === len) {
+       space = textWord.length - len * 10
+     }
+     console.log('len+' + len, 'space+' + space)
+     let word = textWord.substr(i * 10, space)
+     ctx.fillText(word, 15, 60*(i+1))
+   }
+   //生成图片
+  let url = canvas2d.toDataURL('image/png');
+  let geometry1 = new THREE.PlaneGeometry(30, 30)
+  let texture = THREE.ImageUtils.loadTexture(url, null, function (t) {})
+  let material1 = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    opacity: 1,
+    transparent: true,
+  })
+  let rect = new THREE.Mesh(geometry1, material1)
+  rect.position.set(0, 0, -100)
+  scene.add(rect)
+  //return rect;
+
+  },
+  getManyShape:function(){
+    let arr = [];
+    //长方体 参数：长，宽，高
+    var box = new THREE.BoxGeometry(100, 100, 100);
+    arr.push(box)
+    // 球体 参数：半径60  经纬度细分数40,40
+    var sphere = new THREE.SphereGeometry(60, 40, 40);
+    arr.push(sphere)
+    // 圆柱  参数：圆柱面顶部、底部直径50,50   高度100  圆周分段数
+    var cylinder = new THREE.CylinderGeometry( 50, 50, 100, 25 );
+    arr.push(cylinder)
+    // 正八面体
+    var octahedron = new THREE.OctahedronGeometry(50);
+    arr.push(octahedron)
+    // 正十二面体
+    var dodecahed = new THREE.DodecahedronGeometry(50);
+    arr.push(dodecahed)
+    // 正二十面体
+    var icosahedron = new THREE.IcosahedronGeometry(50);
+    arr.push(icosahedron)
+    for(let j =0 ;j<100; j++){
+      for(let i=0;i<arr.length;i++){
+        let material = new THREE.MeshPhongMaterial({
+          color:Math.random()*0xffffff, //颜色
+        }); //材质对象Material
+        var mesh = new THREE.Mesh(arr[i], material); // 创建网格模型对象
+        let x = (Math.random()*800-400)
+        let z = (Math.random()*800-400)
+        mesh.position.set(x,Math.random()*800-400,z);
+        mesh.scale.set(0.3,0.3,0.3)
+        scene.add(mesh)
+      }
+    }
+  },
 })
