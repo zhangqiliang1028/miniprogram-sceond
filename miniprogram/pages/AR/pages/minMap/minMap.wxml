@@ -15,6 +15,11 @@
   style="height: {{screenHeight}}px;"
   bindtap="touchTap"
   >
+  <canvas 
+  class="myCanvas2d"
+  canvas-id="mycanvas"
+  style="height:100%;width:100%"
+  >
     <view class="return" catchtap="return">
       返回
   </view>
@@ -32,7 +37,7 @@
     {{currentLocationInfo}}
   </text> 
 </canvas>
-
+</canvas>
 </camera>
 </map>
 

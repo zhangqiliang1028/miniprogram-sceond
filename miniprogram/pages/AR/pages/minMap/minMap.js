@@ -54,6 +54,7 @@ Page({
         that.render();
         console.log("屏幕宽高：["+that.data.screenWidth+","+that.data.screenHeight+"]");
       })
+    //ctx = wx.createCanvasContext('mycanvas')
     MapContext = wx.createMapContext('map' )
     wx.openSetting({
       success (res) {
@@ -153,12 +154,14 @@ Page({
     scene.name = "场景";
     var axisHelper = new THREE.AxesHelper(250);
     scene.add(axisHelper);
+    //this.getText();
+    buildGroup = new THREE.Group()
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2(0,0);
     light = new THREE.PointLight();
     light.position.set(0, 10, 0).normalize();
     scene.add(light);
-    this.getManyShape();//场景中添加各种形状的物体
+    //this.getManyShape();//场景中添加各种形状的物体
     let geometry = new THREE.DodecahedronGeometry(5);
     object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
     object.name = "preObject"
@@ -173,11 +176,11 @@ Page({
   },
   render:function() {
     if(this.data.alpha<=180){
-      //camera.rotation.y = -this.data.alpha/360*Math.PI*2;
+      camera.rotation.y = -this.data.alpha/360*Math.PI*2;
     }else{
-      //camera.rotation.y = -(this.data.alpha-360)/360*Math.PI*2;
+      camera.rotation.y = -(this.data.alpha-360)/360*Math.PI*2;
     }
-    camera.rotateY(0.01)
+    //camera.rotateY(0.01) //自动旋转
     renderer.render(scene, camera);
     canvas.requestAnimationFrame(this.render); //循环执行渲染
   },
@@ -222,21 +225,14 @@ Page({
   },
   //--------------------------------------------------------------------
   onHide: function (e){
-    var that = this;
-    if(that.data.isLocationListen){
-      wx.stopLocationUpdate({})
-      that.setData({
-        isLocationListen:false
-      })
-    }
-    if(that.data.isDeviceListen){
-      wx.stopDeviceMotionListening({})
-      that.setData({
-        isDeviceListen:false
-      })
+    if(this.data.isResearch){
+      this.closeResearch()
     }
   },
   return(){
+    if(this.data.isResearch){
+      this.closeResearch()
+    }
     wx.navigateBack({
     delta: 1
   })
@@ -246,13 +242,12 @@ Page({
     mouse.y = -(e[1] / this.data.screenHeight) * 2 + 1;
     console.log(mouse.x+" "+mouse.y);
     raycaster.setFromCamera(mouse, camera);
-    let intersects = raycaster.intersectObjects(scene.children,true); //object检测与射线相交的物体,recursive为true检查后代对象，默认值为false
+    let intersects = raycaster.intersectObjects(buildGroup.children,false); //object检测与射线相交的物体,recursive为true检查后代对象，默认值为false
     tapedObjs.splice(0);
     if(intersects.length>0){
       for(let i=0;i<intersects.length;i++){
         tapedObjs.push(intersects[i]);
-      }
-      
+      }  
     }
     console.log("点击到的物体数量："+tapedObjs.length);
   },
@@ -260,7 +255,6 @@ Page({
     var that = this;
     if(!that.data.isResearch){
       //设置一个组，所有检测到的目标加入到组中
-      buildGroup = new THREE.Group()
       scene.add(buildGroup);
       that.setData({
         researchInfo:'搜索中...',
@@ -313,29 +307,8 @@ Page({
       that.showBuild()
     }
     else{
-      scene.remove(buildGroup);
-      wx.stopDeviceMotionListening({
-        success: (res) => {
-          console.log('设备监听结束')
-          that.setData({
-            isDeviceListen:false,
-          })
-        },
-      })
-      wx.stopLocationUpdate({
-        success: (res) => {
-          console.log('位置监听结束')
-          that.setData({
-            isLocationListen:false,
-          })
-        },
-      })
-      that.setData({
-        researchInfo:'搜索',
-        isResearch:false,
-      })
+      this.closeResearch();
     }
-    
   },
   showBuild:function(){
     var that = this;
@@ -370,81 +343,41 @@ Page({
     let _Y = (pos.y - this.data.currentLocScreen[1]);
     
     let co = object.clone();
-    //co.position.set(_X*(Math.random()*50+50),Math.random()*60-30,_Y*(Math.random()*50+50));
     co.position.set(_X/2,Math.random()*60-30,_Y/2);
     co.lookAt(camera.position)
-    let pp = this.getPlane(10,6,obj.title)
-    //let pp = this.getText(10,6,obj.title)
-    pp.position.set(4,7.5,0)
-    co.add(pp)
+    //pp.position.set(4,7.5,0)
+    //co.add(pp)
     buildGroup.add(co);
   },
-  getPlane:function(w,h,name){
-        // 创建一个平面对象Plane
-        let geometry = new THREE.PlaneBufferGeometry(w,h)
-        // 设置平面法线方向
-        geometry.normal = new THREE.Vector3(0, 0, 1);
-        // 坐标原点到平面的距离，区分正负
-        //geometry.constant = 100;
-        var textureLoader = new THREE.TextureLoader();
-        var texture = textureLoader.load('../util/1.jpg');
-        var material = new THREE.MeshPhongMaterial({
-          //color:0xffffff, //颜色
-          //opacity:1,  //透明度
-          transparent:false,  //是否开启透明度
-          wireframe:false, //将几何图形渲染为线框。 默认值为false
-          //shininess:12, //高光
-          //side:THREE.DoubleSide, //双面显示材质
-          map: texture,//设置颜色贴图属性值
-        }); //材质对象Material
-        texture.minFilter = THREE.LinearFilter;
-        var plane = new THREE.Mesh(geometry, material); // 创建网格模型对象
-        return plane;
-  },
-  getText:function(w,h,name){
-    const query = wx.createSelectorQuery()
-    query.select('#myCanvas')
-      .fields({ node: true, size: true })
-      .exec((res) => {
-        canvas2d = res[0].node
-        ctx = canvas2d.getContext('2d')
-        canvas2d.width = 300
-        canvas2d.height = 300
-      })
-  //制作矩形
-  ctx.fillStyle = "rgba(255,165,0,0.8)";
-  ctx.fillRect(0, 0, 300, 300)
-   //设置文字
-   ctx.fillStyle = "#fff";
-   ctx.font = 'normal 18pt "楷体"'
-   ctx.fillText('模型介绍', 100, 20)
-   let textWord = '该模型由小少小同学制作完成'
-   //文字换行
-   let len = parseInt(textWord.length / 10)
-   for (let i = 0; i < (len + 1); i++) {
-     let space = 10
-     if (i === len) {
-       space = textWord.length - len * 10
-     }
-     console.log('len+' + len, 'space+' + space)
-     let word = textWord.substr(i * 10, space)
-     ctx.fillText(word, 15, 60*(i+1))
-   }
-   //生成图片
-  let url = canvas2d.toDataURL('image/png');
-  let geometry1 = new THREE.PlaneGeometry(30, 30)
-  let texture = THREE.ImageUtils.loadTexture(url, null, function (t) {})
-  let material1 = new THREE.MeshBasicMaterial({
-    map: texture,
-    side: THREE.DoubleSide,
-    opacity: 1,
-    transparent: true,
-  })
-  let rect = new THREE.Mesh(geometry1, material1)
-  rect.position.set(0, 0, -100)
-  scene.add(rect)
-  //return rect;
 
+  getText:function(obj,pos){
+    //let _X = (pos.x - this.data.currentLocScreen[0]);
+    //let _Y = (pos.y - this.data.currentLocScreen[1]);
+    var that = this
+    var font;
+    var loader = new THREE.FontLoader();
+    loader.load("https://7465-test-5gbxczf0565156d5-1304816106.tcb.qcloud.la/examples/fonts/helvetiker_regular.typeface.json?sign=20b71699be4013f79d95ca0e243595a5&t=1616403998", function (res) {
+        font = new THREE.TextBufferGeometry("hahahaha", {
+            font: res,
+            size: 20,
+            height: 10
+        });
+        font.computeBoundingBox(); // 运行以后设置font的boundingBox属性对象，如果不运行无法获得。
+        //font.computeVertexNormals();
+        var map = new THREE.TextureLoader().load("https://7465-test-5gbxczf0565156d5-1304816106.tcb.qcloud.la/3Dmodels/uv_grid_directx.jpg?sign=6e5d909b415f9a33549deed0fac729fc&t=1616403091");
+        var material = new THREE.MeshLambertMaterial({map:map,side:THREE.DoubleSide});
+        var fontModel = new THREE.Mesh(font,material);
+        //设置位置
+        fontModel.position.set(- (font.boundingBox.max.x - font.boundingBox.min.x)/2,-20,-100);
+        //fontModel.position.set(_X/2,Math.random()*60-30,_Y/2);
+        fontModel.lookAt(camera.position)
+        console.log(fontModel)
+        that.setData({
+          tip:fontModel.position
+        })
+        fontModel.position.set(50,0,50)
+        scene.add(fontModel)
+    });
   },
   getManyShape:function(){
     let arr = [];
@@ -466,7 +399,7 @@ Page({
     // 正二十面体
     var icosahedron = new THREE.IcosahedronGeometry(50);
     arr.push(icosahedron)
-    for(let j =0 ;j<100; j++){
+    for(let j =0 ;j<10; j++){
       for(let i=0;i<arr.length;i++){
         let material = new THREE.MeshPhongMaterial({
           color:Math.random()*0xffffff, //颜色
@@ -480,4 +413,24 @@ Page({
       }
     }
   },
+  closeResearch:function(){
+    scene.remove(buildGroup);
+    var that = this;
+    if(that.data.isLocationListen){
+      wx.stopLocationUpdate({})
+      that.setData({
+        isLocationListen:false
+      })
+    }
+    if(that.data.isDeviceListen){
+      wx.stopDeviceMotionListening({})
+      that.setData({
+        isDeviceListen:false
+      })
+    }
+    that.setData({
+      researchInfo:'搜索',
+      isResearch:false,
+    })
+  }
 })
