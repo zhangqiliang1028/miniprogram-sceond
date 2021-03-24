@@ -23,7 +23,9 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    this.setData({
+    var that = this;
+    console.log(options)
+    that.setData({
       name:options.name,
       id:options.id,
     })

@@ -228,7 +228,7 @@ function responseClickObj(obj,pos,THREE,ctx) {
 }
 function toDetailPage(obj){
   wx.navigateTo({
-    url: '../rectangle/rectangle?name = obj.name&id = obj.id',
+    url: '../rectangle/rectangle?name='+obj.name+'&id='+obj.id,
   })
 }
 

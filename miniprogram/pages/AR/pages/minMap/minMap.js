@@ -149,23 +149,24 @@ Page({
     });
   },
   init:function() {
-    camera = new THREE.PerspectiveCamera(70, canvas.width / canvas.height, 1, 10000);
+    var that = this
+    camera = new THREE.PerspectiveCamera(60, canvas.width / canvas.height, 1, 10000);
     scene = new THREE.Scene();
     scene.name = "场景";
-    var axisHelper = new THREE.AxesHelper(250);
-    scene.add(axisHelper);
-    //this.getText();
     buildGroup = new THREE.Group()
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2(0,0);
     light = new THREE.PointLight();
     light.position.set(0, 10, 0).normalize();
     scene.add(light);
-    //this.getManyShape();//场景中添加各种形状的物体
+    //this.get3DText('naem')
+    this.getManyShape();//场景中添加各种形状的物体
     let geometry = new THREE.DodecahedronGeometry(5);
-    object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
+    object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ 
+      color: Math.random()*0xffffff, //颜色
+      //map:new THREE.CanvasTexture(that.getTextCanvas('Leo Test Label')),
+    }));
     object.name = "preObject"
-    //scene.add(object);
     renderer = new THREE.WebGLRenderer({
       canvas:canvas,
       antialias:true,
@@ -175,12 +176,8 @@ Page({
     renderer.setSize(canvas.width, canvas.height);
   },
   render:function() {
-    if(this.data.alpha<=180){
-      camera.rotation.y = -this.data.alpha/360*Math.PI*2;
-    }else{
-      camera.rotation.y = -(this.data.alpha-360)/360*Math.PI*2;
-    }
-    //camera.rotateY(0.01) //自动旋转
+    this.upDateCamera() //设备手动寻找目标
+    //camera.rotateY(0.01) //自动旋转场景中的相机
     renderer.render(scene, camera);
     canvas.requestAnimationFrame(this.render); //循环执行渲染
   },
@@ -210,6 +207,7 @@ Page({
         tip:'888'
       })
         //转到点击目标的详情页面
+        console.log(tapedObjs[0].object)
         util.toDetailPage(tapedObjs[0].object);
     }else{
       this.setData({
@@ -242,7 +240,7 @@ Page({
     mouse.y = -(e[1] / this.data.screenHeight) * 2 + 1;
     console.log(mouse.x+" "+mouse.y);
     raycaster.setFromCamera(mouse, camera);
-    let intersects = raycaster.intersectObjects(buildGroup.children,false); //object检测与射线相交的物体,recursive为true检查后代对象，默认值为false
+    let intersects = raycaster.intersectObjects(scene.children,false); //object检测与射线相交的物体,recursive为true检查后代对象，默认值为false
     tapedObjs.splice(0);
     if(intersects.length>0){
       for(let i=0;i<intersects.length;i++){
@@ -261,6 +259,7 @@ Page({
         isResearch:true,
       })
       wx.startDeviceMotionListening({
+        interval:'normal',
         success:function(){
           console.log("开始设备监听")
           that.setData({
@@ -279,12 +278,12 @@ Page({
       wx.onDeviceMotionChange(function (res) {
           console.log(res)
           let alpha = res.alpha.toFixed(2);
-          //var beta = parseFloat(res.beta);
-          //var gamma = parseFloat(res.gamma);
+          let beta = res.beta.toFixed(2);
+          let gamma = res.gamma.toFixed(2);
             that.setData({
               alpha: alpha,
-              //beta: parseInt(beta) - parseInt(beta)%0.1,
-              //gamma: parseInt(gamma) - parseInt(gamma)%0.1,
+              beta: -beta,
+              gamma: gamma,
             })
       })
     
@@ -312,7 +311,6 @@ Page({
   },
   showBuild:function(){
     var that = this;
-    
     MapContext.toScreenLocation({
       latitude:this.data.currentLa,
       longitude:this.data.currentLo,
@@ -327,7 +325,6 @@ Page({
     var mm = this.data.markers
     for(let key in mm){
       if(mm[key].title!="当前位置"){
-        //that.drawBuildings(mm[key],{x:Math.random()*700-350,y:Math.random()*800-400})
         MapContext.toScreenLocation({
           latitude:mm[key].latitude,
           longitude:mm[key].longitude,
@@ -343,24 +340,22 @@ Page({
     let _Y = (pos.y - this.data.currentLocScreen[1]);
     
     let co = object.clone();
-    co.position.set(_X/2,Math.random()*60-30,_Y/2);
+    co.position.set(_X/2,Math.random()*20-10,_Y/2);
     co.lookAt(camera.position)
     //pp.position.set(4,7.5,0)
     //co.add(pp)
     buildGroup.add(co);
   },
 
-  getText:function(obj,pos){
-    //let _X = (pos.x - this.data.currentLocScreen[0]);
-    //let _Y = (pos.y - this.data.currentLocScreen[1]);
+  get3DText:function(name){
     var that = this
     var font;
     var loader = new THREE.FontLoader();
     loader.load("https://7465-test-5gbxczf0565156d5-1304816106.tcb.qcloud.la/examples/fonts/helvetiker_regular.typeface.json?sign=20b71699be4013f79d95ca0e243595a5&t=1616403998", function (res) {
-        font = new THREE.TextBufferGeometry("hahahaha", {
+        font = new THREE.TextBufferGeometry(name, {
             font: res,
-            size: 20,
-            height: 10
+            size: 5,
+            height: 2
         });
         font.computeBoundingBox(); // 运行以后设置font的boundingBox属性对象，如果不运行无法获得。
         //font.computeVertexNormals();
@@ -368,43 +363,54 @@ Page({
         var material = new THREE.MeshLambertMaterial({map:map,side:THREE.DoubleSide});
         var fontModel = new THREE.Mesh(font,material);
         //设置位置
-        fontModel.position.set(- (font.boundingBox.max.x - font.boundingBox.min.x)/2,-20,-100);
-        //fontModel.position.set(_X/2,Math.random()*60-30,_Y/2);
-        fontModel.lookAt(camera.position)
-        console.log(fontModel)
-        that.setData({
-          tip:fontModel.position
-        })
-        fontModel.position.set(50,0,50)
-        scene.add(fontModel)
+        for(let i= 0;i<50;i++){
+          let t = fontModel.clone();
+          t.position.set(Math.random()*300-150,Math.random()*60-30,Math.random()*200-100);
+          t.lookAt(camera.position)
+          console.log(t)
+          //buildGroup.add(fontModel)
+          scene.add(t)
+        }
+        
     });
   },
   getManyShape:function(){
+    var that = this;
     let arr = [];
+    let name = [];
     //长方体 参数：长，宽，高
     var box = new THREE.BoxGeometry(100, 100, 100);
     arr.push(box)
+    name.push('box')
     // 球体 参数：半径60  经纬度细分数40,40
     var sphere = new THREE.SphereGeometry(60, 40, 40);
     arr.push(sphere)
+    name.push('sphere')
     // 圆柱  参数：圆柱面顶部、底部直径50,50   高度100  圆周分段数
     var cylinder = new THREE.CylinderGeometry( 50, 50, 100, 25 );
     arr.push(cylinder)
+    name.push('cylinder')
     // 正八面体
     var octahedron = new THREE.OctahedronGeometry(50);
     arr.push(octahedron)
+    name.push('octahedron')
     // 正十二面体
     var dodecahed = new THREE.DodecahedronGeometry(50);
     arr.push(dodecahed)
+    name.push('dodecahed')
     // 正二十面体
     var icosahedron = new THREE.IcosahedronGeometry(50);
     arr.push(icosahedron)
-    for(let j =0 ;j<10; j++){
+    name.push('icosahedron')
+
+    for(let j =0 ;j<50; j++){
       for(let i=0;i<arr.length;i++){
         let material = new THREE.MeshPhongMaterial({
           color:Math.random()*0xffffff, //颜色
+          //map:new THREE.CanvasTexture(that.getTextCanvas('Leo Test Label')),
         }); //材质对象Material
         var mesh = new THREE.Mesh(arr[i], material); // 创建网格模型对象
+        mesh.name = name[i]
         let x = (Math.random()*800-400)
         let z = (Math.random()*800-400)
         mesh.position.set(x,Math.random()*800-400,z);
@@ -414,6 +420,9 @@ Page({
     }
   },
   closeResearch:function(){
+    for(let i=0;i<buildGroup.children.length;i++){
+      buildGroup.remove(buildGroup.children[i])
+    }
     scene.remove(buildGroup);
     var that = this;
     if(that.data.isLocationListen){
@@ -432,5 +441,40 @@ Page({
       researchInfo:'搜索',
       isResearch:false,
     })
-  }
+  },
+  getTextCanvas(text){
+    var canvasScreen;
+    const query = wx.createSelectorQuery()
+    query.select('#myCanvas')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        canvasScreen = res[0].node
+        ctx = canvasScreen.getContext('2d')
+        canvasScreen.width = 100;
+        canvasScreen.height = 50;
+        ctx = canvasScreen.getContext('2d');
+        ctx.fillStyle = '#C3C3C3';
+        ctx.fillRect(0, 0, canvasScreen.width, canvasScreen.height);
+        ctx.font = 50+'px " bold';
+        ctx.fillStyle = '#2891FF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, canvasScreen.width/2,canvasScreen.height/2); 
+      })
+    return canvasScreen;
+  },
+  upDateCamera:function(){
+    if(this.data.alpha<=180){
+      camera.rotation.y = -this.data.alpha/360*Math.PI*2;
+    }else{
+      camera.rotation.y = -(this.data.alpha-360)/360*Math.PI*2;
+    }
+    if(this.data.beta>=-90&&this.data.beta<=90){
+      camera.rotation.x = (90 + this.data.beta)/360*Math.PI*2;
+    }else{
+      camera.rotation.x = 0
+    }
+    //camera.rotation.x = -(this.data.beta-90)/360*Math.PI*2;
+    //camera.rotation.z = (this.data.gamma)/360*Math.PI*2;
+  },
 })
