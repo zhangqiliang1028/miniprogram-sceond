@@ -14,7 +14,7 @@ Page({
     newCurrentLa : null,
     distance : 0,
     duration : 0,
-    markers : null,
+    markers : [],
     polyline: null,
     statusType: 'walk',
     includePoints:[],
@@ -55,6 +55,7 @@ Page({
           setting:{
 
           },
+          /*
           markers: [{
             id: 0,
             longitude: res.longitude,
@@ -64,6 +65,7 @@ Page({
             width: 32,
             height: 32
           }]
+          */
         });
       }
     })
@@ -90,7 +92,7 @@ Page({
         that.setData({
           markers: markers,
         });
-        console.log(that.data.markers)
+        //console.log(that.data.markers)
       },
       fail: function(info){
         //失败回调

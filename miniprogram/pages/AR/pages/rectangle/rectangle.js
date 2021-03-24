@@ -17,6 +17,7 @@ Page({
     },
     name:'',
     id:'',
+    address:'',
     animation:{},
   },
   /**
@@ -24,10 +25,11 @@ Page({
    */
   onLoad: function (options) {
     var that = this;
-    console.log(options)
+    //console.log(options)
     that.setData({
       name:options.name,
       id:options.id,
+      address:options.address,
     })
     //1、引用数据库，注意数据库权限
     const db = wx.cloud.database({
@@ -52,7 +54,7 @@ Page({
     .get({
       //如果查询成功的话    
       success: res => {
-        console.log(res.data)
+        //console.log(res.data)
         //这一步很重要，给ne赋值，没有这一步的话，前台就不会显示值      
         this.setData({
           ne: res.data

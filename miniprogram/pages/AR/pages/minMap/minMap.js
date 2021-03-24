@@ -26,7 +26,7 @@ Page({
     currentDirection:null,
     distance : 0,
     duration : 0,
-    markers : null,
+    markers : [],
     polyline: null,
     statusType: 'walk',
     includePoints:[],
@@ -74,6 +74,7 @@ Page({
           setting:{
 
           },
+          /*
           markers: [{
             id: 0,
             longitude: res.longitude,
@@ -83,6 +84,7 @@ Page({
             width: 32,
             height: 32
           }]
+          */
         });
         //console.log(that.data.markers)
       }
@@ -102,16 +104,17 @@ Page({
             id: i,
             longitude: res.markers[i-l].longitude,
             latitude: res.markers[i-l].latitude,
-            title: res.markers[i-l].address,
+            address: res.markers[i-l].address,
             iconPath: '../map/images/1.jpg',
             width: 16,
             height: 16,
+            name:res.markers[i-l].name,
           });
         }
         that.setData({
           markers: markers,
         });
-        //console.log("markers中的内容:",that.data.markers)
+        console.log("markers中的内容:",that.data.markers)
       },
       fail: function(info){
         //失败回调
@@ -153,14 +156,13 @@ Page({
     camera = new THREE.PerspectiveCamera(60, canvas.width / canvas.height, 1, 10000);
     scene = new THREE.Scene();
     scene.name = "场景";
-    buildGroup = new THREE.Group()
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2(0,0);
     light = new THREE.PointLight();
     light.position.set(0, 10, 0).normalize();
     scene.add(light);
     //this.get3DText('naem')
-    this.getManyShape();//场景中添加各种形状的物体
+    //this.getManyShape();//场景中添加各种形状的物体
     let geometry = new THREE.DodecahedronGeometry(5);
     object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ 
       color: Math.random()*0xffffff, //颜色
@@ -224,7 +226,7 @@ Page({
   //--------------------------------------------------------------------
   onHide: function (e){
     if(this.data.isResearch){
-      this.closeResearch()
+      //this.closeResearch()
     }
   },
   return(){
@@ -240,7 +242,7 @@ Page({
     mouse.y = -(e[1] / this.data.screenHeight) * 2 + 1;
     console.log(mouse.x+" "+mouse.y);
     raycaster.setFromCamera(mouse, camera);
-    let intersects = raycaster.intersectObjects(scene.children,false); //object检测与射线相交的物体,recursive为true检查后代对象，默认值为false
+    let intersects = raycaster.intersectObjects(scene.children,true); //object检测与射线相交的物体,recursive为true检查后代对象，默认值为false
     tapedObjs.splice(0);
     if(intersects.length>0){
       for(let i=0;i<intersects.length;i++){
@@ -253,6 +255,7 @@ Page({
     var that = this;
     if(!that.data.isResearch){
       //设置一个组，所有检测到的目标加入到组中
+      buildGroup = new THREE.Group()
       scene.add(buildGroup);
       that.setData({
         researchInfo:'搜索中...',
@@ -323,6 +326,7 @@ Page({
     })
     
     var mm = this.data.markers
+    console.log(that.data.markers)
     for(let key in mm){
       if(mm[key].title!="当前位置"){
         MapContext.toScreenLocation({
@@ -338,8 +342,10 @@ Page({
   drawBuildings:function(obj,pos){
     let _X = (pos.x - this.data.currentLocScreen[0]);
     let _Y = (pos.y - this.data.currentLocScreen[1]);
-    
+    console.log(obj)
     let co = object.clone();
+    co.name = obj.name;
+    co.address = obj.address;
     co.position.set(_X/2,Math.random()*20-10,_Y/2);
     co.lookAt(camera.position)
     //pp.position.set(4,7.5,0)
@@ -420,9 +426,6 @@ Page({
     }
   },
   closeResearch:function(){
-    for(let i=0;i<buildGroup.children.length;i++){
-      buildGroup.remove(buildGroup.children[i])
-    }
     scene.remove(buildGroup);
     var that = this;
     if(that.data.isLocationListen){

@@ -29,7 +29,6 @@
   <view class='alpha'>gamma:{{gamma}}</view>
   <view class='alpha'>tip:{{tip}}</view>
 </view>
-
   <text class="currentLocation">
     {{currentLocationInfo}}
   </text> 
