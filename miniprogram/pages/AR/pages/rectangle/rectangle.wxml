@@ -3,8 +3,8 @@
 <movable-area class="movable-area" style="height:{{screenHeight}}px;">
   <text class="content">这里是{{name}}的详细介绍</text>
   <view >地址:{{address}}</view>
-  <view >方向:{{address}}</view>
-  <view >距离:{{address}}</view>
+  <view >方向:{{direction}}度</view>
+  <view >距离:{{distance}}米</view>
   <view class='a' wx:for="{{ne}}" wx:key="key"><!--wx:for是微信数据绑定的一种方式，该数组有多少数据就显示多少个view-->
       <!--index为每个数据对应的下标-->
       <view >序号：{{index+1}}</view>

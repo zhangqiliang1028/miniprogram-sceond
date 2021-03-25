@@ -30,6 +30,8 @@ Page({
       name:options.name,
       id:options.id,
       address:options.address,
+      distance:options.distance,
+      direction:options.direction
     })
     //1、引用数据库，注意数据库权限
     const db = wx.cloud.database({

@@ -1,5 +1,6 @@
 // pages/AR/pages/minMap/minMap.js
 var amapFile = require('../../../../libs/amap-wx');
+var QQMapWX = require('../../../../libs/qqmap-wx-jssdk');
 var util = require('../util/util')
 import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
 var camera,canvas,canvas2d,scene,THREE,light,raycaster,renderer,ctx,gl,MapContext,amap;//高德地图
@@ -16,6 +17,7 @@ Page({
     gamma:0,  //左右，范围值为 [-1*PI, PI)。右边朝着地球表面转动为正
     key: '2006539e53e460b0de628886ac9b0b36',
     show: true,
+    compassDirection:0,
     isResearch:false,
     isLocationListen:false,
     isDeviceListen:false,
@@ -74,7 +76,7 @@ Page({
           setting:{
 
           },
-          /*
+          
           markers: [{
             id: 0,
             longitude: res.longitude,
@@ -84,7 +86,6 @@ Page({
             width: 32,
             height: 32
           }]
-          */
         });
         //console.log(that.data.markers)
       }
@@ -261,6 +262,12 @@ Page({
         researchInfo:'搜索中...',
         isResearch:true,
       })
+      wx.startCompass() //罗盘     
+      wx.onCompassChange(function (res){
+        that.setData({
+          compassDirection:res.direction
+        })
+      })
       wx.startDeviceMotionListening({
         interval:'normal',
         success:function(){
@@ -295,16 +302,7 @@ Page({
           currentLo:result.longitude,
           currentLa:result.latitude
         })
-        MapContext.toScreenLocation({
-          latitude:this.data.currentLa,
-          longitude:this.data.currentLo,
-          success:function(res){
-            console.log("当前位置:",res.x,res.y);
-            that.setData({
-              currentLocScreen:[res.x,res.y],
-            })
-          }
-        })
+        
       })
       that.showBuild()
     }
@@ -314,39 +312,31 @@ Page({
   },
   showBuild:function(){
     var that = this;
-    MapContext.toScreenLocation({
-      latitude:this.data.currentLa,
-      longitude:this.data.currentLo,
-      success:function(res){
-        console.log("当前位置:",res.x,res.y);
-        that.setData({
-          currentLocScreen:[res.x,res.y],
-        })
-      }
-    })
-    
     var mm = this.data.markers
     console.log(that.data.markers)
     for(let key in mm){
       if(mm[key].title!="当前位置"){
-        MapContext.toScreenLocation({
-          latitude:mm[key].latitude,
-          longitude:mm[key].longitude,
-          success:function(res){
-              that.drawBuildings(mm[key],res)
-          }
-        })
+        that.drawBuildings(mm[key])
       }
     }
   },
-  drawBuildings:function(obj,pos){
-    let _X = (pos.x - this.data.currentLocScreen[0]);
-    let _Y = (pos.y - this.data.currentLocScreen[1]);
+  drawBuildings:function(obj){
+    var that = this;
     console.log(obj)
+    let x1 = obj.latitude
+    let y1 = obj.longitude
+    let x2 = that.data.currentLa
+    let y2 = that.data.currentLo
+    let direction = this.cal_distance({latitude:x2,longitude:y2},{latitude:x1,longitude:y1})
+    let distance = this.cal_angle({latitude:x2,longitude:y2},{latitude:x1,longitude:y1})
+    let _Y = Math.cos(direction/180*Math.PI)*distance
+    let _X = Math.sin(direction/180*Math.PI)*distance
     let co = object.clone();
-    co.name = obj.name;
-    co.address = obj.address;
-    co.position.set(_X/2,Math.random()*20-10,_Y/2);
+    co.name = obj.name; //名称
+    co.address = obj.address; //地址
+    co.distance = distance; //距离
+    co.direction = direction;//方向
+    co.position.set(_X,Math.random()*20-10,_Y);
     co.lookAt(camera.position)
     //pp.position.set(4,7.5,0)
     //co.add(pp)
@@ -428,6 +418,7 @@ Page({
   closeResearch:function(){
     scene.remove(buildGroup);
     var that = this;
+    wx.offCompassChange();
     if(that.data.isLocationListen){
       wx.stopLocationUpdate({})
       that.setData({
@@ -473,11 +464,56 @@ Page({
       camera.rotation.y = -(this.data.alpha-360)/360*Math.PI*2;
     }
     if(this.data.beta>=-90&&this.data.beta<=90){
-      camera.rotation.x = (90 + this.data.beta)/360*Math.PI*2;
+      //camera.rotation.x = (90 + this.data.beta)/360*Math.PI*2;
     }else{
-      camera.rotation.x = 0
+      //camera.rotation.x = 0
     }
     //camera.rotation.x = -(this.data.beta-90)/360*Math.PI*2;
     //camera.rotation.z = (this.data.gamma)/360*Math.PI*2;
   },
+  //根据两个经纬度坐标计算角度
+  cal_angle:function(p1,p2){ //正北顺时针 //返回度
+    var _this = this;
+    var lat_a=p1.latitude
+    var lat_b=p2.latitude
+    var lng_a=p1.longitude
+    var lng_b=p2.longitude
+    lat_a=lat_a*Math.PI/180;
+    lng_a=lng_a*Math.PI/180;
+    lat_b=lat_b*Math.PI/180;
+    lng_b=lng_b*Math.PI/180;
+    var dlon=lng_b-lng_a
+    var y=Math.sin(dlon)*Math.cos(lat_b)
+    var x=(Math.cos(lat_a)*Math.sin(lat_b)-Math.sin(lat_a)*Math.cos(lat_b)*Math.cos(dlon))
+    var brng=Math.atan2(y,x)*180/Math.PI
+    brng=(brng+360)%360
+    //将角度写入data里，用于展示，保留5个小数
+    _this.setData({
+      angl:brng.toFixed(5)
+    })
+    console.log(brng)
+    return  brng.toFixed(5)
+  },
+
+  //根据两个经纬度坐标计算距离 单位米
+  cal_distance:function(p1,p2){
+    var _this=this
+    var lat1=p1.latitude
+    var lat2=p2.latitude
+    var lng1=p1.longitude
+    var lng2=p2.longitude
+    var radLat1 = lat1*Math.PI / 180.0;
+    var radLat2 = lat2*Math.PI / 180.0;
+    var a = radLat1 - radLat2;
+    var  b = lng1*Math.PI / 180.0 - lng2*Math.PI / 180.0;
+    var s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a/2),2) +
+    Math.cos(radLat1)*Math.cos(radLat2)*Math.pow(Math.sin(b/2),2)));
+    s = s *6378.137 ;// EARTH_RADIUS;
+    s = Math.round(s * 10000) / 10000;
+    //将距离写入data里，用于展示，保留5个小数
+
+    console.log(s)
+    return s.toFixed(5)*1000
+},
+
 })
