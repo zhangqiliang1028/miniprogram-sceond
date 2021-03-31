@@ -2,8 +2,9 @@
 var amapFile = require('../../../../libs/amap-wx');
 var QQMapWX = require('../../../../libs/qqmap-wx-jssdk');
 var util = require('../util/util')
+import { registerGLTFLoader } from '../../../../loaders/gltf-loader'
 import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
-var camera,canvas,canvas2d,scene,THREE,light,raycaster,renderer,ctx,gl,MapContext,amap;//高德地图
+var camera,canvas,clock,mixer,scene,THREE,light,raycaster,renderer,ctx,gl,MapContext,amap;//高德地图
 var object,buildGroup,tapedObjs=[];
 var mouse;
 Page({
@@ -40,7 +41,8 @@ Page({
       enablescroll:false,
     }
   },
-  onLoad(){
+  onLoad(options){
+
     var that = this;
     amap = new amapFile.AMapWX({ key: this.data.key });
     const query = wx.createSelectorQuery()
@@ -56,6 +58,12 @@ Page({
         that.render();
         console.log("屏幕宽高：["+that.data.screenWidth+","+that.data.screenHeight+"]");
       })
+      if(options.name){
+        this.setData({
+          tip:options.name
+        })
+        this.get3DModel();
+      }
     //ctx = wx.createCanvasContext('mycanvas')
     MapContext = wx.createMapContext('map' )
     wx.openSetting({
@@ -154,12 +162,14 @@ Page({
   },
   init:function() {
     var that = this
+    registerGLTFLoader(THREE)
     camera = new THREE.PerspectiveCamera(60, canvas.width / canvas.height, 1, 10000);
     scene = new THREE.Scene();
     scene.name = "场景";
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2(0,0);
     light = new THREE.PointLight();
+    clock = new THREE.Clock();
     light.position.set(0, 10, 0).normalize();
     scene.add(light);
     //this.get3DText('naem')
@@ -181,6 +191,8 @@ Page({
   render:function() {
     this.upDateCamera() //设备手动寻找目标
     //camera.rotateY(0.01) //自动旋转场景中的相机
+    var dt = clock.getDelta();
+    if (mixer) mixer.update(dt);
     renderer.render(scene, camera);
     canvas.requestAnimationFrame(this.render); //循环执行渲染
   },
@@ -205,9 +217,6 @@ Page({
     if(tapedObjs.length>0){
       this.setData({
         objname:tapedObjs[0].object.name,
-      })
-      that.setData({
-        tip:'888'
       })
         //转到点击目标的详情页面
         console.log(tapedObjs[0].object)
@@ -247,7 +256,10 @@ Page({
     tapedObjs.splice(0);
     if(intersects.length>0){
       for(let i=0;i<intersects.length;i++){
-        tapedObjs.push(intersects[i]);
+        if(intersects[i].object.name){
+          tapedObjs.push(intersects[i]);
+        }
+        
       }  
     }
     console.log("点击到的物体数量："+tapedObjs.length);
@@ -313,7 +325,7 @@ Page({
   showBuild:function(){
     var that = this;
     var mm = this.data.markers
-    console.log(that.data.markers)
+    //console.log(that.data.markers)
     for(let key in mm){
       if(mm[key].title!="当前位置"){
         that.drawBuildings(mm[key])
@@ -322,24 +334,26 @@ Page({
   },
   drawBuildings:function(obj){
     var that = this;
-    console.log(obj)
     let x1 = obj.latitude
     let y1 = obj.longitude
     let x2 = that.data.currentLa
     let y2 = that.data.currentLo
-    let direction = this.cal_distance({latitude:x2,longitude:y2},{latitude:x1,longitude:y1})
-    let distance = this.cal_angle({latitude:x2,longitude:y2},{latitude:x1,longitude:y1})
-    let _Y = Math.cos(direction/180*Math.PI)*distance
-    let _X = Math.sin(direction/180*Math.PI)*distance
+    let distance = this.cal_distance({latitude:x2,longitude:y2},{latitude:x1,longitude:y1})
+    let angle = this.cal_angle({latitude:x2,longitude:y2},{latitude:x1,longitude:y1}).angle
+    let direction = this.cal_angle({latitude:x2,longitude:y2},{latitude:x1,longitude:y1}).direction
+    let _Y = Math.cos(angle/180*Math.PI)*distance
+    let _X = Math.sin(angle/180*Math.PI)*distance
     let co = object.clone();
     co.name = obj.name; //名称
     co.address = obj.address; //地址
     co.distance = distance; //距离
+    co.angle = angle;//角度
     co.direction = direction;//方向
+    co.latitude = obj.latitude
+    co.longitude = obj.longitude
     co.position.set(_X,Math.random()*20-10,_Y);
     co.lookAt(camera.position)
-    //pp.position.set(4,7.5,0)
-    //co.add(pp)
+    this.getImageTexture(co);
     buildGroup.add(co);
   },
 
@@ -436,7 +450,7 @@ Page({
       isResearch:false,
     })
   },
-  getTextCanvas(text){
+  getTextCanvas:function(text){
     var canvasScreen;
     const query = wx.createSelectorQuery()
     query.select('#myCanvas')
@@ -457,6 +471,26 @@ Page({
       })
     return canvasScreen;
   },
+  getImageTexture:function(obj){
+    var width = 20,height = 10
+    var plane = new THREE.PlaneGeometry(width, height); //矩形平面
+    // TextureLoader创建一个纹理加载器对象，可以加载图片作为几何体纹理
+    var textureLoader = new THREE.TextureLoader();
+    // 执行load方法，加载纹理贴图成功后，返回一个纹理对象Texture
+    textureLoader.load('../util/1.jpg', function(texture) {
+      var material = new THREE.MeshLambertMaterial({
+        // color: 0x0000ff,
+        // 设置颜色纹理贴图：Texture对象作为材质map属性的属性值
+        transparent:true,
+        opacity:0.6,
+        map: texture,//设置颜色贴图属性值
+      }); //材质对象Material
+      texture.minFilter = THREE.LinearFilter
+      var mesh = new THREE.Mesh(plane, material); //网格模型对象Mesh
+      mesh.position.set(width/2,height/2,0)
+      obj.add(mesh); //网格模型添加到场景中
+  })
+ },
   upDateCamera:function(){
     if(this.data.alpha<=180){
       camera.rotation.y = -this.data.alpha/360*Math.PI*2;
@@ -487,12 +521,33 @@ Page({
     var x=(Math.cos(lat_a)*Math.sin(lat_b)-Math.sin(lat_a)*Math.cos(lat_b)*Math.cos(dlon))
     var brng=Math.atan2(y,x)*180/Math.PI
     brng=(brng+360)%360
-    //将角度写入data里，用于展示，保留5个小数
-    _this.setData({
-      angl:brng.toFixed(5)
-    })
-    console.log(brng)
-    return  brng.toFixed(5)
+    brng = brng.toFixed(1)
+    let s = null;
+    if(brng<1||brng>359){
+      s = '正北'
+    }
+    else if(brng<89){
+      s = '北偏东'
+    }
+    else if(brng<91){
+      s = '正东'
+    }
+    else if(brng<179){
+      s = '东偏南'
+    }
+    else if(brng<181){
+      s = '正南'
+    }
+    else if(brng<269){
+      s = '南偏西'
+    }
+    else if(brng<271){
+      s = '正西'
+    }
+    else if(brng<=359){
+      s = '西偏北'
+    }
+    return  {angle:brng,direction:s}
   },
 
   //根据两个经纬度坐标计算距离 单位米
@@ -509,11 +564,42 @@ Page({
     var s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a/2),2) +
     Math.cos(radLat1)*Math.cos(radLat2)*Math.pow(Math.sin(b/2),2)));
     s = s *6378.137 ;// EARTH_RADIUS;
-    s = Math.round(s * 10000) / 10000;
+    s = Math.round(s * 10000) / 10;
     //将距离写入data里，用于展示，保留5个小数
+    return s.toFixed(1)
+  },
 
-    console.log(s)
-    return s.toFixed(5)*1000
-},
+  get3DModel:function(){
+        // model
+        var loader = new THREE.GLTFLoader();
+        loader.load('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', function (gltf) {
+          var model = gltf.scene;
+          model.position.set(0,0,-20);
+          model.lookAt(camera.position)
+          scene.add(model);
+          //createGUI(model, gltf.animations)
+        }, undefined, function (e) {
+          console.error(e);
+        });
+  },
+  createGUI:function(model, animations) {
+    var states = ['Idle', 'Walking', 'Running', 'Dance', 'Death', 'Sitting', 'Standing'];
+    var emotes = ['Jump', 'Yes', 'No', 'Wave', 'Punch', 'ThumbsUp'];
+    mixer = new THREE.AnimationMixer(model);
+    actions = {};
+    for (var i = 0; i < animations.length; i++) {
+      var clip = animations[i];
+      var action = mixer.clipAction(clip);
+      actions[clip.name] = action;
+      if (emotes.indexOf(clip.name) >= 0 || states.indexOf(clip.name) >= 4) {
+        action.clampWhenFinished = true;
+        action.loop = THREE.LoopOnce;
+      }
+    }
 
+    // expressions
+    face = model.getObjectByName('Head_2');
+    activeAction = actions['Walking'];
+    activeAction.play();
+  },
 })

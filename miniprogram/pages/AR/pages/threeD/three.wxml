@@ -36,9 +36,12 @@
   <view class="info" visibility = "hidden">
     {{info}}
   </view>
+  <!--
   <view class="countTime">
         <text>计时：{{countdown}}</text>
     </view>
+  -->
+
  </canvas>
 
  </canvas>

@@ -4,10 +4,10 @@
   >
   菜单
   <view class="ARview" bindtap="threeDClick">
-    进入AR
+    AR拍照
   </view>
   <view class="TXmap" bindtap="mapClick">
-    腾讯地图
+    导航
   </view>
   <view class="minMap" bindtap="minMapClick">
     室内导航

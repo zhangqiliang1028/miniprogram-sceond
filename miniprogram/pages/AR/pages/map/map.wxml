@@ -8,14 +8,6 @@
 >
 
   <map id="map" longitude="{{currentLo}}" latitude="{{currentLa}}" markers="{{markers}}" polyline="{{polyline}}"  include-points="{{includePoints}}" setting = "{{setting}}" show-location style="width: 100%; height: 100%;">
-	<!--
-		<canvas 
-  class="webgl"
-  type="webgl"
-	id="webgl"
-
-  ></canvas>
-	-->
 	</map>
 	<view class="tui-search-bottom {{show ? '' : 'tui-hide'}}">
 	  <view class="page-group">

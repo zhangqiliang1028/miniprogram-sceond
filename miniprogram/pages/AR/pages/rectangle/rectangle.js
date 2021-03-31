@@ -31,7 +31,10 @@ Page({
       id:options.id,
       address:options.address,
       distance:options.distance,
-      direction:options.direction
+      direction:options.direction,
+      angle:(options.angle%90).toFixed(1),
+      latitude:options.latitude,
+      longitude:options.longitude,
     })
     //1、引用数据库，注意数据库权限
     const db = wx.cloud.database({
@@ -92,6 +95,11 @@ Page({
   returnClick:function(){
     wx.navigateBack({
       delta: 1
+    })
+  },
+  goClick:function(){
+    wx.navigateTo({
+      url: '../minMap/minMap?name='+this.data.name,
     })
   },
   /**

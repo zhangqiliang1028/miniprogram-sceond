@@ -1,5 +1,7 @@
 // pages/AR/pages/threeD/three.js
 import { createScopedThreejs } from '../../../../threejs-miniprogram/index'
+import { registerGLTFLoader } from '../../../../loaders/gltf-loader';
+const { renderModel } = require('../../../../libs/model')
 var util = require('../util/util.js')
 var camera,canvas,canvas2d,scene,THREE,light,raycaster,renderer,ctx;
 var mouse,object,object1,object1scale = 0,mesh;
@@ -30,8 +32,9 @@ Page({
         this.canvas = canvas;
         THREE = createScopedThreejs(this.canvas);
         console.log(THREE);
-        this.init();
-        this.render();
+        renderModel(canvas, THREE)
+        //this.init();
+        //this.render();
         console.log("屏幕宽高：["+this.data.screenWidth+","+this.data.screenHeight+"]");
       })
       ctx = wx.createCanvasContext('mycanvas')
@@ -40,6 +43,7 @@ Page({
   },
   init:function() {
     camera = new THREE.PerspectiveCamera(70, canvas.width / canvas.height, 1, 10000);
+    registerGLTFLoader(THREE)
     scene = new THREE.Scene();
     scene.name = "场景";
     raycaster = new THREE.Raycaster();
@@ -62,6 +66,7 @@ Page({
     object1.position.y =  20;
     object1.name = "正十二面体"
     this.drawArrows();
+    this.getExportedModel()
     scene.add(mesh);
     scene.add(object1);
     renderer = new THREE.WebGLRenderer({
@@ -312,6 +317,16 @@ Page({
         countdown:'00:00:00'
       })
     }
+  },
+  getExportedModel:function(){
+    var loader = new THREE.GLTFLoader();
+    loader.load('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', function (gltf) {
+      model = gltf.scene;
+      scene.add(model);
+      model.position.set(0,0,-100)
+    }, undefined, function (e) {
+      console.error(e);
+    });
   },
   /**
    * 生命周期函数--监听页面初次渲染完成

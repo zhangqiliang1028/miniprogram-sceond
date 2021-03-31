@@ -228,10 +228,9 @@ function responseClickObj(obj,pos,THREE,ctx) {
 }
 function toDetailPage(obj){
   wx.navigateTo({
-    url: '../rectangle/rectangle?name='+obj.name+'&id='+obj.id+'&address='+obj.address+'&distance='+obj.distance+'&direction='+obj.direction,
+    url: '../rectangle/rectangle?name='+obj.name+'&id='+obj.id+'&address='+obj.address+'&distance='+obj.distance+'&direction='+obj.direction+'&angle='+obj.angle+'&latitude='+obj.latitude+'&longitude='+obj.longitude,
   })
 }
-
 module.exports = {
   responseClickObj: responseClickObj,
   toDetailPage:toDetailPage,

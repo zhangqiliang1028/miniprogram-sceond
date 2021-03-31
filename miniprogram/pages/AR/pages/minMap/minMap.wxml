@@ -28,6 +28,7 @@
   <view class='alpha'>beta:{{beta}}</view>
   <view class='alpha'>gamma:{{gamma}}</view>
   <view class='alpha'>方向:{{compassDirection}}</view>
+  <view class='alpha'>目的地:{{tip}}</view>
 </view>
   <text class="currentLocation">
     {{currentLocationInfo}}
